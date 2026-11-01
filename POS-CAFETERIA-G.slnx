@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/dominio/PosCafeteria.Dominio.csproj" />
+    <Project Path="src/infraestructura/PosCafeteria.Infraestructura.csproj" />
+    <Project Path="src/presentacion/PosCafeteria.Presentacion.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PosCafeteria.Tests/PosCafeteria.Tests.csproj" />
+  </Folder>
+</Solution>

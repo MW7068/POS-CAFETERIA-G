@@ -1,0 +1,24 @@
+# .NET / IDE
+**/bin/
+**/obj/
+.vs/
+.idea/
+*.user
+*.suo
+TestResults/
+**/TestResults/
+coverage/
+*.trx
+# Local databases and secrets
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+# Temporary Office files
+~$*
+*.tmp

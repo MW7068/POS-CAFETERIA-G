@@ -1,0 +1,13 @@
+<Window x:Class="PosCafeteria.Presentacion.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="POS - Cafe de Mama Oli" Height="420" Width="720"
+        MinHeight="320" MinWidth="480">
+  <StackPanel Margin="32" VerticalAlignment="Center">
+    <TextBlock Text="Cafe de Mama Oli" FontSize="30" FontWeight="SemiBold" />
+    <TextBlock Margin="0,16,0,0" Text="Base del proyecto lista para el equipo."
+               FontSize="18" TextWrapping="Wrap" />
+    <TextBlock Margin="0,8,0,0" Text="Las funciones de ventas e inventario aun no estan implementadas."
+               TextWrapping="Wrap" />
+  </StackPanel>
+</Window>
