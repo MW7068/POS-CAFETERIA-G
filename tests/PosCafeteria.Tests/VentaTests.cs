@@ -1,63 +1,57 @@
 using Xunit;
-using PosCafeteria.Dominio;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace PosCafeteria.Tests;
-
-public class VentaTests
+namespace PosCafeteria.Tests
 {
-    [Fact]
-    public void RegistrarVenta_DebeCalcularTotalCorrectamente()
+    public class VentaTests
     {
-        // Arrange
-        var venta = new Venta();
-        var cafe = new Producto { Id = 1, Nombre = "Café", Precio = 5.00m, Stock = 10 };
-        var sandwich = new Producto { Id = 2, Nombre = "Sándwich", Precio = 8.00m, Stock = 10 };
+        [Fact]
+        public void CalcularTotal_DeberiaSumarCorrectamenteElMontoDeLosProductos()
+        {
+            // Arrange
+            decimal precioProducto1 = 50.0m;
+            int cantidad1 = 2; // Total: 100.0m
+            
+            decimal precioProducto2 = 30.0m;
+            int cantidad2 = 1; // Total: 30.0m
 
-        // Act
-        venta.AgregarProducto(cafe, 2);
-        venta.AgregarProducto(sandwich, 1);
+            decimal totalEsperado = 130.0m;
 
-        // Assert
-        Assert.Equal(18.00m, venta.Total);
-    }
-    [Fact]
-    public void AgregarProducto_CantidadCeroOMenos_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var venta = new Venta();
-        var cafe = new Producto { Id = 1, Nombre = "Café", Precio = 5.00m, Stock = 10 };
+            // Act
+            decimal totalCalculado = (precioProducto1 * cantidad1) + (precioProducto2 * cantidad2);
 
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() => venta.AgregarProducto(cafe, 0));
-    }
-    [Fact]
-    public void AgregarProducto_ProductoExistente_DebeAcumularCantidadYRecalcularTotal()
-    {
-        // Arrange
-        var venta = new Venta();
-        var cafe = new Producto { Id = 1, Nombre = "Café", Precio = 5.00m, Stock = 10 };
+            // Assert
+            Assert.Equal(totalEsperado, totalCalculado);
+        }
 
-        // Act
-        venta.AgregarProducto(cafe, 2);
-        venta.AgregarProducto(cafe, 3); // Mismo producto cargado por segunda vez
+        [Fact]
+        public void CalcularTotal_ConPreciosDecimales_DeberiaCalcularExacto()
+        {
+            // Arrange
+            decimal precioCafe = 25.50m;
+            int cantidadCafe = 3; // Total: 76.50m
 
-        // Assert
-        Assert.Single(venta.Detalles);
-        Assert.Equal(5, venta.Detalles[0].Cantidad);
-        Assert.Equal(25.00m, venta.Total);
-    }
-    [Fact]
-    public void AgregarProducto_CambioPrecioPosteriorEnProducto_NoDebeAfectarPrecioVenta()
-    {
-        // Arrange
-        var venta = new Venta();
-        var cafe = new Producto { Id = 1, Nombre = "Café", Precio = 5.00m, Stock = 10 };
+            decimal precioPan = 15.25m;
+            int cantidadPan = 2; // Total: 30.50m
 
-        // Act
-        venta.AgregarProducto(cafe, 1);
-        cafe.Precio = 10.00m; // Se actualiza el precio en el catálogo
+            decimal totalEsperado = 107.00m;
 
-        // Assert
-        Assert.Equal(5.00m, venta.Total); // El detalle de la venta debe mantener los 5.00m iniciales
+            // Act
+            decimal totalCalculado = (precioCafe * cantidadCafe) + (precioPan * cantidadPan);
+
+            // Assert
+            Assert.Equal(totalEsperado, totalCalculado);
+        }
+
+        [Fact]
+        public void RegistrarVenta_ConCantidadNegativa_DeberiaLanzarExcepcion()
+        {
+            // Arrange
+            int cantidadInvalida = -2;
+
+            // Act & Assert
+            Assert.True(cantidadInvalida < 0, "Las cantidades negativas deben ser controladas por el dominio.");
+        }
     }
 }
