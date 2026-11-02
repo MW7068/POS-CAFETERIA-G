@@ -7,18 +7,20 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using PosCafeteria.Dominio;
 
 namespace PosCafeteria.Presentacion;
 
 public partial class MainWindow : Window
 {
-    private readonly ObservableCollection<Producto> _productos = new();
-    private readonly ObservableCollection<Producto> _productosFiltrados = new();
-    private readonly ObservableCollection<DetalleVenta> _carrito = new();
+    private readonly ObservableCollection<ProductoCatalogo> _productos = new();
+    private readonly ObservableCollection<ProductoCatalogo> _productosFiltrados = new();
+    private readonly ObservableCollection<DetalleVentaVista> _carrito = new();
+
+    private Venta _ventaActual = new();
 
     private bool _inicializando = true;
-
-    private const decimal IgvPredeterminado = 10.5m;
+    private bool _confirmando;
 
     public MainWindow()
     {
@@ -40,10 +42,6 @@ public partial class MainWindow : Window
         }
 
         cmbCategoria.SelectedIndex = 0;
-        cmbDescuento.SelectedIndex = 0;
-
-        txtIgv.Text = IgvPredeterminado.ToString(
-            CultureInfo.InvariantCulture);
 
         _inicializando = false;
 
@@ -51,35 +49,55 @@ public partial class MainWindow : Window
         ActualizarResumen();
     }
 
+    // Catálogo provisional para la demostración.
+    // Los productos utilizan la clase Producto del dominio.
     private void CargarProductos()
     {
-        // Productos provisionales de demostración.
-        // Se reemplazarán por el catálogo real del sistema.
+        AgregarProductoCatalogo(1, "Café americano", 22.10m,
+            "Café", "☕");
 
-        _productos.Add(new Producto("P001", "Café americano", 22.10m,
-            "Café", "☕"));
+        AgregarProductoCatalogo(2, "Café espresso", 18.00m,
+            "Café", "☕");
 
-        _productos.Add(new Producto("P002", "Café espresso", 18.00m,
-            "Café", "☕"));
+        AgregarProductoCatalogo(3, "Capuchino", 25.00m,
+            "Café", "🥤");
 
-        _productos.Add(new Producto("P003", "Capuchino", 25.00m,
-            "Café", "🥤"));
+        AgregarProductoCatalogo(4, "Latte", 24.00m,
+            "Café", "☕");
 
-        _productos.Add(new Producto("P004", "Latte", 24.00m,
-            "Café", "☕"));
+        AgregarProductoCatalogo(5, "Chocolate caliente", 20.00m,
+            "Bebidas", "🍫");
 
-        _productos.Add(new Producto("P005", "Chocolate caliente", 20.00m,
-            "Bebidas", "🍫"));
+        AgregarProductoCatalogo(6, "Limonada", 12.00m,
+            "Bebidas", "🍋");
 
-        _productos.Add(new Producto("P006", "Limonada", 12.00m,
-            "Bebidas", "🍋"));
+        AgregarProductoCatalogo(7, "Sándwich clásico", 18.50m,
+            "Snacks", "🥪");
 
-        _productos.Add(new Producto("P007", "Sándwich clásico", 18.50m,
-            "Snacks", "🥪"));
-
-        _productos.Add(new Producto("P008", "Cheesecake", 16.00m,
-            "Postres", "🍰"));
+        AgregarProductoCatalogo(8, "Cheesecake", 16.00m,
+            "Postres", "🍰");
     }
+
+    private void AgregarProductoCatalogo(
+        int id,
+        string nombre,
+        decimal precio,
+        string categoria,
+        string icono)
+    {
+        var producto = new Producto
+        {
+            Id = id,
+            Nombre = nombre,
+            Precio = precio,
+            Stock = 100
+        };
+
+        _productos.Add(
+            new ProductoCatalogo(producto, categoria, icono));
+    }
+
+    // BÚSQUEDA Y FILTRADO
 
     private void FiltrarProductos()
     {
@@ -97,213 +115,288 @@ public partial class MainWindow : Window
             (categoria == "Todas las categorías" ||
              p.Categoria == categoria) &&
             (string.IsNullOrWhiteSpace(busqueda) ||
-             p.Nombre.Contains(busqueda,
+             p.Nombre.Contains(
+                 busqueda,
                  StringComparison.OrdinalIgnoreCase)));
 
-        foreach (Producto producto in resultado)
+        foreach (ProductoCatalogo producto in resultado)
         {
             _productosFiltrados.Add(producto);
         }
     }
 
-    private void Buscar_TextChanged(object sender, TextChangedEventArgs e)
+    private void Buscar_TextChanged(
+        object sender,
+        TextChangedEventArgs e)
     {
         FiltrarProductos();
     }
 
     private void Categoria_SelectionChanged(
-        object sender, SelectionChangedEventArgs e)
+        object sender,
+        SelectionChangedEventArgs e)
     {
         FiltrarProductos();
     }
 
-    private void AgregarProducto_Click(object sender, RoutedEventArgs e)
+    // AGREGAR PRODUCTOS
+
+    private void AgregarProducto_Click(
+        object sender,
+        RoutedEventArgs e)
     {
         if (sender is not Button boton ||
-            boton.Tag is not Producto producto)
+            boton.Tag is not ProductoCatalogo producto)
+        {
             return;
-
-        DetalleVenta? existente = _carrito.FirstOrDefault(
-            d => d.Codigo == producto.Codigo);
-
-        if (existente != null)
-        {
-            existente.Cantidad++;
-        }
-        else
-        {
-            var detalle = new DetalleVenta(producto);
-            detalle.PropertyChanged += Detalle_PropertyChanged;
-            _carrito.Add(detalle);
         }
 
+        try
+        {
+            // El dominio acumula automáticamente
+            // la cantidad si el producto ya existe.
+            _ventaActual.AgregarProducto(producto.Dominio, 1);
+
+            RefrescarCarrito();
+            ActualizarResumen();
+        }
+        catch (ArgumentException ex)
+        {
+            MessageBox.Show(
+                ex.Message,
+                "No se pudo agregar el producto",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+    }
+
+    // ACTUALIZAR CARRITO DESDE EL DOMINIO
+
+    private void RefrescarCarrito()
+    {
+        _carrito.Clear();
+
+        foreach (DetalleVenta detalle in _ventaActual.Detalles)
+        {
+            ProductoCatalogo? producto = _productos.FirstOrDefault(
+                p => p.Dominio.Id == detalle.ProductoId);
+
+            if (producto == null)
+                continue;
+
+            _carrito.Add(
+                new DetalleVentaVista(producto, detalle));
+        }
+    }
+
+    // RECONSTRUIR LA VENTA UTILIZANDO LAS REGLAS DEL DOMINIO
+
+    private void ReconstruirVenta(
+        DetalleVentaVista? productoModificado = null,
+        int? nuevaCantidad = null,
+        int? productoEliminar = null)
+    {
+        var nuevaVenta = new Venta();
+
+        foreach (DetalleVentaVista detalle in _carrito)
+        {
+            int productoId = detalle.Producto.Dominio.Id;
+
+            if (productoEliminar == productoId)
+                continue;
+
+            int cantidad = detalle.Cantidad;
+
+            if (productoModificado != null &&
+                productoModificado.Producto.Dominio.Id == productoId &&
+                nuevaCantidad.HasValue)
+            {
+                cantidad = nuevaCantidad.Value;
+            }
+
+            nuevaVenta.AgregarProducto(
+                detalle.Producto.Dominio,
+                cantidad);
+        }
+
+        _ventaActual = nuevaVenta;
+
+        RefrescarCarrito();
         ActualizarResumen();
     }
 
-    private void Detalle_PropertyChanged(
-        object? sender, PropertyChangedEventArgs e)
+    // AUMENTAR CANTIDAD
+
+    private void AumentarCantidad_Click(
+        object sender,
+        RoutedEventArgs e)
     {
-        if (e.PropertyName == nameof(DetalleVenta.Cantidad) ||
-            e.PropertyName == nameof(DetalleVenta.Importe))
+        if (sender is not Button boton ||
+            boton.Tag is not DetalleVentaVista detalle)
         {
-            ActualizarResumen();
+            return;
         }
+
+        ReconstruirVenta(
+            detalle,
+            detalle.Cantidad + 1);
     }
 
-    private void AumentarCantidad_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button boton &&
-            boton.Tag is DetalleVenta detalle)
-        {
-            detalle.Cantidad++;
-        }
-    }
+    // DISMINUIR CANTIDAD
 
-    private void DisminuirCantidad_Click(object sender, RoutedEventArgs e)
+    private void DisminuirCantidad_Click(
+        object sender,
+        RoutedEventArgs e)
     {
-        if (sender is Button boton &&
-            boton.Tag is DetalleVenta detalle)
+        if (sender is not Button boton ||
+            boton.Tag is not DetalleVentaVista detalle)
         {
-            if (detalle.Cantidad > 1)
-                detalle.Cantidad--;
-            else
-                EliminarDetalle(detalle);
+            return;
         }
-    }
 
-    private void EliminarProducto_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button boton &&
-            boton.Tag is DetalleVenta detalle)
+        if (detalle.Cantidad > 1)
+        {
+            ReconstruirVenta(
+                detalle,
+                detalle.Cantidad - 1);
+        }
+        else
         {
             EliminarDetalle(detalle);
         }
     }
 
-    private void EliminarDetalle(DetalleVenta detalle)
-    {
-        detalle.PropertyChanged -= Detalle_PropertyChanged;
-        _carrito.Remove(detalle);
-        ActualizarResumen();
-    }
-
-    private void Configuracion_TextChanged(
-        object sender, RoutedEventArgs e)
-    {
-        if (_inicializando || cmbDescuento == null || txtIgv == null)
-            return;
-
-        ActualizarResumen();
-    }
-
-    private decimal ObtenerPorcentajeIgv()
-    {
-        if (txtIgv == null)
-            return IgvPredeterminado;
-
-        if (decimal.TryParse(
-                txtIgv.Text,
-                NumberStyles.Number,
-                CultureInfo.InvariantCulture,
-                out decimal porcentaje) &&
-            porcentaje >= 0 &&
-            porcentaje <= 100)
-        {
-            return porcentaje;
-        }
-
-        return IgvPredeterminado;
-    }
-
-    private decimal ObtenerPorcentajeDescuento()
-    {
-        if (cmbDescuento == null ||
-            cmbDescuento.SelectedItem is not ComboBoxItem item)
-        {
-            return 0m;
-        }
-
-        string texto = item.Content?.ToString() ?? "0";
-        string numero = texto.Replace("%", "").Trim();
-
-        if (decimal.TryParse(
-                numero,
-                NumberStyles.Number,
-                CultureInfo.InvariantCulture,
-                out decimal porcentaje))
-        {
-            return porcentaje;
-        }
-
-        return 0m;
-    }
-
-    private void ActualizarResumen()
-    {
-        if (_inicializando ||
-            txtSubtotal == null ||
-            txtImporteDescuento == null ||
-            txtBaseImponible == null ||
-            txtImporteIgv == null ||
-            txtTotal == null ||
-            txtIgvLabel == null ||
-            txtCantidadProductos == null ||
-            btnConfirmar == null ||
-            cmbDescuento == null ||
-            txtIgv == null)
-        {
-            return;
-        }
-
-        decimal subtotal = _carrito.Sum(d => d.Importe);
-
-        decimal porcentajeDescuento = ObtenerPorcentajeDescuento();
-        decimal porcentajeIgv = ObtenerPorcentajeIgv();
-
-        decimal descuento = subtotal * porcentajeDescuento / 100m;
-        decimal baseImponible = subtotal - descuento;
-        decimal igv = baseImponible * porcentajeIgv / 100m;
-        decimal total = baseImponible + igv;
-
-        txtSubtotal.Text = FormatearMoneda(subtotal);
-        txtImporteDescuento.Text = FormatearMoneda(descuento);
-        txtBaseImponible.Text = FormatearMoneda(baseImponible);
-        txtImporteIgv.Text = FormatearMoneda(igv);
-        txtTotal.Text = FormatearMoneda(total);
-
-        txtIgvLabel.Text = $"IGV ({porcentajeIgv:N2} %)";
-
-        int cantidad = _carrito.Sum(d => d.Cantidad);
-
-        txtCantidadProductos.Text =
-            $"{cantidad} {(cantidad == 1 ? "producto" : "productos")}";
-
-        btnConfirmar.IsEnabled = _carrito.Count > 0;
-    }
-
-    private static string FormatearMoneda(decimal importe)
-    {
-        return importe.ToString(
-            "C2",
-            CultureInfo.GetCultureInfo("es-PE"));
-    }
+    // VALIDACIÓN DE CANTIDADES
 
     private void Cantidad_PreviewTextInput(
-        object sender, TextCompositionEventArgs e)
+        object sender,
+        TextCompositionEventArgs e)
     {
         e.Handled = !e.Text.All(char.IsDigit);
     }
 
-    private void Porcentaje_PreviewTextInput(
-        object sender, TextCompositionEventArgs e)
+    private void Cantidad_Pasting(
+        object sender,
+        DataObjectPastingEventArgs e)
     {
-        e.Handled = !e.Text.All(c =>
-            char.IsDigit(c) || c == '.' || c == ',');
+        if (!e.DataObject.GetDataPresent(DataFormats.UnicodeText))
+        {
+            e.CancelCommand();
+            return;
+        }
+
+        string texto = e.DataObject.GetData(
+            DataFormats.UnicodeText)?.ToString() ?? "";
+
+        if (!texto.All(char.IsDigit))
+        {
+            e.CancelCommand();
+        }
     }
 
-    private void Cancelar_Click(object sender, RoutedEventArgs e)
+    private void Cantidad_LostFocus(
+        object sender,
+        RoutedEventArgs e)
     {
-        if (_carrito.Count == 0)
+        if (sender is not TextBox textBox ||
+            textBox.DataContext is not DetalleVentaVista detalle)
+        {
+            return;
+        }
+
+        string texto = textBox.Text.Trim();
+
+        bool cantidadValida =
+            int.TryParse(
+                texto,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out int cantidad) &&
+            cantidad > 0;
+
+        if (!cantidadValida)
+        {
+            MessageBox.Show(
+                "Ingresa una cantidad entera mayor que cero.",
+                "Cantidad no válida",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+
+            detalle.RestaurarCantidadTexto();
+
+            textBox.Text = detalle.CantidadTexto;
+            return;
+        }
+
+        if (cantidad != detalle.Cantidad)
+        {
+            ReconstruirVenta(detalle, cantidad);
+        }
+        else
+        {
+            detalle.RestaurarCantidadTexto();
+            textBox.Text = detalle.CantidadTexto;
+        }
+    }
+
+    // ELIMINAR PRODUCTOS
+
+    private void EliminarProducto_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (sender is Button boton &&
+            boton.Tag is DetalleVentaVista detalle)
+        {
+            EliminarDetalle(detalle);
+        }
+    }
+
+    private void EliminarDetalle(DetalleVentaVista detalle)
+    {
+        ReconstruirVenta(
+            productoEliminar: detalle.Producto.Dominio.Id);
+    }
+
+    // ACTUALIZAR RESUMEN
+
+    private void ActualizarResumen()
+    {
+        if (txtTotal == null ||
+            txtCantidadProductos == null ||
+            btnConfirmar == null)
+        {
+            return;
+        }
+
+        decimal total = _ventaActual.Total;
+
+        txtTotal.Text = FormatearMoneda(total);
+
+        int cantidad = _ventaActual.Detalles.Sum(
+            d => d.Cantidad);
+
+        txtCantidadProductos.Text =
+            $"{cantidad} {(cantidad == 1 ? "producto" : "productos")}";
+
+        btnConfirmar.IsEnabled =
+            _ventaActual.Detalles.Count > 0 && !_confirmando;
+    }
+
+    private static string FormatearMoneda(decimal importe)
+    {
+        return "S/ " + importe.ToString(
+            "N2",
+            CultureInfo.GetCultureInfo("es-PE"));
+    }
+
+    // CANCELAR VENTA
+
+    private void Cancelar_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (_ventaActual.Detalles.Count == 0)
             return;
 
         MessageBoxResult respuesta = MessageBox.Show(
@@ -314,19 +407,23 @@ public partial class MainWindow : Window
 
         if (respuesta == MessageBoxResult.Yes)
         {
-            foreach (DetalleVenta detalle in _carrito)
-            {
-                detalle.PropertyChanged -= Detalle_PropertyChanged;
-            }
+            _ventaActual = new Venta();
 
-            _carrito.Clear();
+            RefrescarCarrito();
             ActualizarResumen();
         }
     }
 
-    private void Confirmar_Click(object sender, RoutedEventArgs e)
+    // CONFIRMACIÓN DE DEMOSTRACIÓN
+
+    private void Confirmar_Click(
+        object sender,
+        RoutedEventArgs e)
     {
-        if (_carrito.Count == 0)
+        if (_confirmando)
+            return;
+
+        if (_ventaActual.Detalles.Count == 0)
         {
             MessageBox.Show(
                 "Agrega al menos un producto antes de continuar.",
@@ -337,98 +434,90 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (!decimal.TryParse(
-                txtIgv.Text,
-                NumberStyles.Number,
-                CultureInfo.InvariantCulture,
-                out decimal porcentajeIgv) ||
-            porcentajeIgv < 0 ||
-            porcentajeIgv > 100)
+        _confirmando = true;
+        btnConfirmar.IsEnabled = false;
+
+        try
         {
+            string total = FormatearMoneda(_ventaActual.Total);
+
             MessageBox.Show(
-                "Ingresa un porcentaje de IGV válido entre 0 y 100.",
-                "IGV no válido",
+                "El detalle de la venta está preparado correctamente.\n\n" +
+                $"Total: {total}\n\n" +
+                "Esta es una demostración de la interfaz. " +
+                "Todavía no se ha conectado el registro de ventas " +
+                "con la base de datos.\n\n" +
+                "No se ha guardado ni enviado ninguna venta.",
+                "Venta preparada - Prototipo",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning);
-
-            txtIgv.Focus();
-            return;
+                MessageBoxImage.Information);
         }
-
-        MessageBox.Show(
-            "El detalle de la venta está preparado.\n\n" +
-            "La confirmación y el registro definitivo están pendientes " +
-            "de conectarse al servicio de ventas del proyecto.\n\n" +
-            "No se ha registrado ni enviado ninguna venta.",
-            "Integración pendiente",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+        finally
+        {
+            _confirmando = false;
+            ActualizarResumen();
+        }
     }
 }
 
-public class Producto
+// MODELO DE PRESENTACIÓN PARA LOS PRODUCTOS DEL CATÁLOGO.
+// No reemplaza ni duplica la entidad Producto del dominio.
+
+public class ProductoCatalogo
 {
-    public string Codigo { get; }
-    public string Nombre { get; }
-    public decimal Precio { get; }
+    public Producto Dominio { get; }
+
+    public string Nombre => Dominio.Nombre;
+
+    public decimal Precio => Dominio.Precio;
+
     public string Categoria { get; }
+
     public string Icono { get; }
 
-    public Producto(
-        string codigo,
-        string nombre,
-        decimal precio,
+    public ProductoCatalogo(
+        Producto dominio,
         string categoria,
         string icono)
     {
-        Codigo = codigo;
-        Nombre = nombre;
-        Precio = precio;
+        Dominio = dominio;
         Categoria = categoria;
         Icono = icono;
     }
 }
 
-public class DetalleVenta : INotifyPropertyChanged
+// MODELO DE PRESENTACIÓN PARA MOSTRAR EL DETALLE DE VENTA.
+// La cantidad y el importe proceden del objeto del dominio.
+
+public class DetalleVentaVista
 {
-    private int _cantidad = 1;
+    public ProductoCatalogo Producto { get; }
 
-    public string Codigo { get; }
-    public string Nombre { get; }
-    public decimal Precio { get; }
+    public DetalleVenta Dominio { get; }
 
-    public int Cantidad
+    public string Nombre => Producto.Nombre;
+
+    public decimal Precio => Dominio.PrecioUnitario;
+
+    public int Cantidad => Dominio.Cantidad;
+
+    public decimal Importe => Cantidad * Precio;
+
+    public string CantidadTexto { get; set; }
+
+    public DetalleVentaVista(
+        ProductoCatalogo producto,
+        DetalleVenta dominio)
     {
-        get => _cantidad;
-        set
-        {
-            int nuevaCantidad = Math.Max(1, value);
-
-            if (_cantidad == nuevaCantidad)
-                return;
-
-            _cantidad = nuevaCantidad;
-
-            OnPropertyChanged(nameof(Cantidad));
-            OnPropertyChanged(nameof(Importe));
-        }
+        Producto = producto;
+        Dominio = dominio;
+        CantidadTexto = Cantidad.ToString(
+            CultureInfo.InvariantCulture);
     }
 
-    public decimal Importe => Precio * Cantidad;
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    public DetalleVenta(Producto producto)
+    public void RestaurarCantidadTexto()
     {
-        Codigo = producto.Codigo;
-        Nombre = producto.Nombre;
-        Precio = producto.Precio;
-    }
-
-    private void OnPropertyChanged(string propiedad)
-    {
-        PropertyChanged?.Invoke(
-            this,
-            new PropertyChangedEventArgs(propiedad));
+        CantidadTexto = Cantidad.ToString(
+            CultureInfo.InvariantCulture);
     }
 }
