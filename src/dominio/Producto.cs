@@ -33,6 +33,9 @@ public class Producto
 
     public void DescontarStock(int cantidad)
     {
+        if (cantidad <= 0)
+            throw new ArgumentException("La cantidad a descontar debe ser mayor que cero.", nameof(cantidad));
+
         if (!TieneStockSuficiente(cantidad))
             throw new InvalidOperationException($"Stock insuficiente para el producto '{Nombre}'. Disponible: {Existencias}, Solicitado: {cantidad}");
 
