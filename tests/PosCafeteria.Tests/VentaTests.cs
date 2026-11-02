@@ -1,36 +1,23 @@
 using Xunit;
+using PosCafeteria.Dominio;
 
-namespace PosCafeteria.Tests
+namespace PosCafeteria.Tests;
+
+public class VentaTests
 {
-    public class VentaTests
+    [Fact]
+    public void RegistrarVenta_DebeCalcularTotalCorrectamente()
     {
-        [Fact]
-        public void CalcularTotal_DeberiaSumarCorrectamenteElMontoDeLosProductos()
-        {
-            // Arrange (Preparación)
-            decimal precioProducto1 = 50.0m;
-            int cantidad1 = 2; // Total: 100.0m
-            
-            decimal precioProducto2 = 30.0m;
-            int cantidad2 = 1; // Total: 30.0m
+        // Arrange
+        var venta = new Venta();
+        var cafe = new Producto { Id = 1, Nombre = "CafÃ©", Precio = 5.00m, Stock = 10 };
+        var sandwich = new Producto { Id = 2, Nombre = "SÃ¡ndwich", Precio = 8.00m, Stock = 10 };
 
-            decimal totalEsperado = 130.0m;
+        // Act
+        venta.AgregarProducto(cafe, 2);
+        venta.AgregarProducto(sandwich, 1);
 
-            // Act (Acción)
-            decimal totalCalculado = (precioProducto1 * cantidad1) + (precioProducto2 * cantidad2);
-
-            // Assert (Verificación)
-            Assert.Equal(totalEsperado, totalCalculado);
-        }
-
-        [Fact]
-        public void RegistrarVenta_ConCantidadNegativa_DeberiaLanzarExcepcion()
-        {
-            // Arrange
-            int cantidadInvalida = -2;
-
-            // Act & Assert
-            Assert.True(cantidadInvalida < 0, "Las cantidades negativas deben ser controladas por el dominio.");
-        }
+        // Assert
+        Assert.Equal(18.00m, venta.Total);
     }
 }
