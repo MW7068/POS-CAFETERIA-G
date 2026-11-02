@@ -1,7 +1,6 @@
 
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -18,6 +17,8 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<DetalleVentaVista> _carrito = new();
 
     private Venta _ventaActual = new();
+
+    private const decimal TasaIGV = 0.18m;
 
     private bool _inicializando = true;
     private bool _confirmando;
@@ -49,33 +50,18 @@ public partial class MainWindow : Window
         ActualizarResumen();
     }
 
-    // Catálogo provisional para la demostración.
-    // Los productos utilizan la clase Producto del dominio.
+    // CATÁLOGO PROVISIONAL
+
     private void CargarProductos()
     {
-        AgregarProductoCatalogo(1, "Café americano", 22.10m,
-            "Café", "☕");
-
-        AgregarProductoCatalogo(2, "Café espresso", 18.00m,
-            "Café", "☕");
-
-        AgregarProductoCatalogo(3, "Capuchino", 25.00m,
-            "Café", "🥤");
-
-        AgregarProductoCatalogo(4, "Latte", 24.00m,
-            "Café", "☕");
-
-        AgregarProductoCatalogo(5, "Chocolate caliente", 20.00m,
-            "Bebidas", "🍫");
-
-        AgregarProductoCatalogo(6, "Limonada", 12.00m,
-            "Bebidas", "🍋");
-
-        AgregarProductoCatalogo(7, "Sándwich clásico", 18.50m,
-            "Snacks", "🥪");
-
-        AgregarProductoCatalogo(8, "Cheesecake", 16.00m,
-            "Postres", "🍰");
+        AgregarProductoCatalogo(1, "Café americano", 22.10m, "Café", "☕");
+        AgregarProductoCatalogo(2, "Café espresso", 18.00m, "Café", "☕");
+        AgregarProductoCatalogo(3, "Capuchino", 25.00m, "Café", "🥤");
+        AgregarProductoCatalogo(4, "Latte", 24.00m, "Café", "☕");
+        AgregarProductoCatalogo(5, "Chocolate caliente", 20.00m, "Bebidas", "🍫");
+        AgregarProductoCatalogo(6, "Limonada", 12.00m, "Bebidas", "🍋");
+        AgregarProductoCatalogo(7, "Sándwich clásico", 18.50m, "Snacks", "🥪");
+        AgregarProductoCatalogo(8, "Cheesecake", 16.00m, "Postres", "🍰");
     }
 
     private void AgregarProductoCatalogo(
@@ -153,8 +139,6 @@ public partial class MainWindow : Window
 
         try
         {
-            // El dominio acumula automáticamente
-            // la cantidad si el producto ya existe.
             _ventaActual.AgregarProducto(producto.Dominio, 1);
 
             RefrescarCarrito();
@@ -189,7 +173,7 @@ public partial class MainWindow : Window
         }
     }
 
-    // RECONSTRUIR LA VENTA UTILIZANDO LAS REGLAS DEL DOMINIO
+    // RECONSTRUIR LA VENTA
 
     private void ReconstruirVenta(
         DetalleVentaVista? productoModificado = null,
@@ -358,6 +342,23 @@ public partial class MainWindow : Window
             productoEliminar: detalle.Producto.Dominio.Id);
     }
 
+    // CÁLCULO DE SUBTOTAL, IGV Y TOTAL
+
+    private (decimal Subtotal, decimal IGV, decimal Total)
+        CalcularTotales()
+    {
+        decimal subtotal = _ventaActual.Total;
+
+        decimal igv = Math.Round(
+            subtotal * TasaIGV,
+            2,
+            MidpointRounding.AwayFromZero);
+
+        decimal total = subtotal + igv;
+
+        return (subtotal, igv, total);
+    }
+
     // ACTUALIZAR RESUMEN
 
     private void ActualizarResumen()
@@ -369,9 +370,11 @@ public partial class MainWindow : Window
             return;
         }
 
-        decimal total = _ventaActual.Total;
+        var totales = CalcularTotales();
 
-        txtTotal.Text = FormatearMoneda(total);
+        txtSubtotal.Text = FormatearMoneda(totales.Subtotal);
+        txtIGV.Text = FormatearMoneda(totales.IGV);
+        txtTotal.Text = FormatearMoneda(totales.Total);
 
         int cantidad = _ventaActual.Detalles.Sum(
             d => d.Cantidad);
@@ -382,6 +385,8 @@ public partial class MainWindow : Window
         btnConfirmar.IsEnabled =
             _ventaActual.Detalles.Count > 0 && !_confirmando;
     }
+
+    // FORMATO DE MONEDA PERUANA
 
     private static string FormatearMoneda(decimal importe)
     {
@@ -439,11 +444,17 @@ public partial class MainWindow : Window
 
         try
         {
-            string total = FormatearMoneda(_ventaActual.Total);
+            var totales = CalcularTotales();
+
+            string subtotal = FormatearMoneda(totales.Subtotal);
+            string igv = FormatearMoneda(totales.IGV);
+            string total = FormatearMoneda(totales.Total);
 
             MessageBox.Show(
                 "El detalle de la venta está preparado correctamente.\n\n" +
-                $"Total: {total}\n\n" +
+                $"Subtotal: {subtotal}\n" +
+                $"IGV (18 %): {igv}\n" +
+                $"TOTAL A PAGAR: {total}\n\n" +
                 "Esta es una demostración de la interfaz. " +
                 "Todavía no se ha conectado el registro de ventas " +
                 "con la base de datos.\n\n" +
@@ -460,8 +471,7 @@ public partial class MainWindow : Window
     }
 }
 
-// MODELO DE PRESENTACIÓN PARA LOS PRODUCTOS DEL CATÁLOGO.
-// No reemplaza ni duplica la entidad Producto del dominio.
+// MODELO DE PRESENTACIÓN PARA PRODUCTOS DEL CATÁLOGO
 
 public class ProductoCatalogo
 {
@@ -486,8 +496,7 @@ public class ProductoCatalogo
     }
 }
 
-// MODELO DE PRESENTACIÓN PARA MOSTRAR EL DETALLE DE VENTA.
-// La cantidad y el importe proceden del objeto del dominio.
+// MODELO DE PRESENTACIÓN PARA DETALLE DE VENTA
 
 public class DetalleVentaVista
 {
@@ -511,6 +520,7 @@ public class DetalleVentaVista
     {
         Producto = producto;
         Dominio = dominio;
+
         CantidadTexto = Cantidad.ToString(
             CultureInfo.InvariantCulture);
     }
