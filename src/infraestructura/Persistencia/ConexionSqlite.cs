@@ -5,7 +5,9 @@ namespace PosCafeteria.Infraestructura.Persistencia;
 
 public static class ConexionSqlite
 {
-    public static CafeteriaDbContext CrearContexto(string rutaArchivo)
+    public static CafeteriaDbContext CrearContexto(
+        string rutaArchivo,
+        bool cargarDemo = false)
     {
         var cadenaConexion = new SqliteConnectionStringBuilder
         {
@@ -13,10 +15,15 @@ public static class ConexionSqlite
             ForeignKeys = true
         }.ToString();
 
-        var opciones = new DbContextOptionsBuilder<CafeteriaDbContext>()
-            .UseSqlite(cadenaConexion)
-            .Options;
+        var constructor = new DbContextOptionsBuilder<CafeteriaDbContext>()
+            .UseSqlite(cadenaConexion);
 
-        return new CafeteriaDbContext(opciones);
+        if (cargarDemo)
+        {
+            constructor.UseSeeding(
+                (contexto, _) => CatalogoDemostracion.Cargar(contexto));
+        }
+
+        return new CafeteriaDbContext(constructor.Options);
     }
 }
