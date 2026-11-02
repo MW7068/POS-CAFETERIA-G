@@ -5,6 +5,17 @@ namespace PosCafeteria.Tests;
 
 public class VentaTests
 {
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-5)]
+    public void AgregarDetalle_CantidadInvalida_LanzaExcepcion(int cantidadInvalida)
+    {
+        var venta = new Venta();
+
+        Assert.Throws<ArgumentException>(() => 
+            venta.AgregarDetalle(productoId: 1, cantidad: cantidadInvalida, precioUnitario: 10.0m));
+    }
     [Fact]
     public void RegistrarVenta_DebeCalcularTotalCorrectamente()
     {
