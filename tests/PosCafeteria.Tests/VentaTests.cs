@@ -30,4 +30,20 @@ public class VentaTests
         // Act & Assert
         Assert.Throws<ArgumentException>(() => venta.AgregarProducto(cafe, 0));
     }
+    [Fact]
+    public void AgregarProducto_ProductoExistente_DebeAcumularCantidadYRecalcularTotal()
+    {
+        // Arrange
+        var venta = new Venta();
+        var cafe = new Producto { Id = 1, Nombre = "Café", Precio = 5.00m, Stock = 10 };
+
+        // Act
+        venta.AgregarProducto(cafe, 2);
+        venta.AgregarProducto(cafe, 3); // Mismo producto cargado por segunda vez
+
+        // Assert
+        Assert.Single(venta.Detalles);
+        Assert.Equal(5, venta.Detalles[0].Cantidad);
+        Assert.Equal(25.00m, venta.Total);
+    }
 }
