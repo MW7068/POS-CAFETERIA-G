@@ -6,27 +6,35 @@ namespace PosCafeteria.Tests
     public class VentaTests
     {
         [Fact]
-        public void CalcularTotal_DeberiaSumarCorrectamenteElMontoDeLosProductos()
+        public void RegistrarVenta_ConCantidadNegativa_DeberiaLanzarExcepcion()
         {
-            // Arrange
+            // Arrange (Prueba original de Brayan / validación de cantidades inválidas)
             var venta = new Venta();
-            var producto1 = new Producto { Id = 1, Nombre = "Café", Precio = 50.0m, Stock = 10 };
-            var producto2 = new Producto { Id = 2, Nombre = "Pan", Precio = 30.0m, Stock = 10 };
+            var producto = new Producto { Id = 1, Nombre = "Café", Precio = 50.0m, Stock = 10 };
+
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => venta.AgregarProducto(producto, -2));
+        }
+
+        [Fact]
+        public void CalcularTotal_DeberiaAcumularYConservarPrecioCorrectamente()
+        {
+            // Arrange (Prueba original de Brayan / acumulación y conservación del precio)
+            var venta = new Venta();
+            var producto = new Producto { Id = 1, Nombre = "Café", Precio = 50.0m, Stock = 10 };
 
             // Act
-            venta.AgregarProducto(producto1, 2); // 50 * 2 = 100
-            venta.AgregarProducto(producto2, 1); // 30 * 1 = 30
-
-            decimal totalEsperado = 130.0m;
+            venta.AgregarProducto(producto, 2);
+            venta.AgregarProducto(producto, 1);
 
             // Assert
-            Assert.Equal(totalEsperado, venta.Total);
+            Assert.Equal(150.0m, venta.Total);
         }
 
         [Fact]
         public void CalcularTotal_ConPreciosDecimales_DeberiaCalcularExacto()
         {
-            // Arrange
+            // Arrange (Nuestro complemento de precisión decimal solicitado)
             var venta = new Venta();
             var cafe = new Producto { Id = 1, Nombre = "Café Especial", Precio = 25.50m, Stock = 10 };
             var pan = new Producto { Id = 2, Nombre = "Pan Integral", Precio = 15.25m, Stock = 10 };
@@ -39,17 +47,6 @@ namespace PosCafeteria.Tests
 
             // Assert
             Assert.Equal(totalEsperado, venta.Total);
-        }
-
-        [Fact]
-        public void RegistrarVenta_ConCantidadNegativa_DeberiaLanzarExcepcion()
-        {
-            // Arrange
-            var venta = new Venta();
-            var producto = new Producto { Id = 1, Nombre = "Café", Precio = 50.0m, Stock = 10 };
-
-            // Act & Assert
-            Assert.Throws<ArgumentException>(() => venta.AgregarProducto(producto, -2));
         }
     }
 }
