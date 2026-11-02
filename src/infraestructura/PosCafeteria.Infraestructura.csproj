@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../dominio/PosCafeteria.Dominio.csproj" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
+    <ProjectReference Include="..\dominio\PosCafeteria.Dominio.csproj" />
+    <ProjectReference Include="..\infraestructura\PosCafeteria.Infraestructura.csproj" />
   </ItemGroup>
 </Project>
