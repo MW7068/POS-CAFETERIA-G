@@ -46,4 +46,18 @@ public class VentaTests
         Assert.Equal(5, venta.Detalles[0].Cantidad);
         Assert.Equal(25.00m, venta.Total);
     }
+    [Fact]
+    public void AgregarProducto_CambioPrecioPosteriorEnProducto_NoDebeAfectarPrecioVenta()
+    {
+        // Arrange
+        var venta = new Venta();
+        var cafe = new Producto { Id = 1, Nombre = "Café", Precio = 5.00m, Stock = 10 };
+
+        // Act
+        venta.AgregarProducto(cafe, 1);
+        cafe.Precio = 10.00m; // Se actualiza el precio en el catálogo
+
+        // Assert
+        Assert.Equal(5.00m, venta.Total); // El detalle de la venta debe mantener los 5.00m iniciales
+    }
 }
