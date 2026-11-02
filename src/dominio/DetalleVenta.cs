@@ -11,16 +11,16 @@ public class DetalleVenta
 
     public decimal Subtotal => Cantidad * PrecioUnitario;
 
-    // Constructor vacío para EF Core
-    public DetalleVenta() { }
+    // Constructor restringido para EF Core
+    internal DetalleVenta() { }
 
     public DetalleVenta(int productoId, int cantidad, decimal precioUnitario)
     {
         if (cantidad <= 0)
             throw new ArgumentException("La cantidad debe ser mayor a cero.", nameof(cantidad));
 
-        if (precioUnitario < 0)
-            throw new ArgumentException("El precio unitario no puede ser negativo.", nameof(precioUnitario));
+        if (precioUnitario <= 0)
+            throw new ArgumentException("El precio unitario debe ser mayor a cero.", nameof(precioUnitario));
 
         ProductoId = productoId;
         Cantidad = cantidad;
@@ -28,11 +28,10 @@ public class DetalleVenta
     }
 
     public DetalleVenta(Producto producto, int cantidad)
-        : this(producto?.Id ?? throw new ArgumentNullException(nameof(producto)), cantidad, producto.Precio)
+        : this(producto?.Id ?? throw new ArgumentNullException(nameof(producto)), cantidad, producto?.Precio ?? throw new ArgumentNullException(nameof(producto)))
     {
     }
 
-    // Cambiado a internal para evitar modificaciones externas post-confirmación
     internal void AumentarCantidad(int cantidad)
     {
         if (cantidad <= 0)
