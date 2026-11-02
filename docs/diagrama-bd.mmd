@@ -1,0 +1,23 @@
+erDiagram
+    Ventas ||--o{ DetallesVenta : "contiene - CASCADE"
+    Productos ||--o{ DetallesVenta : "referenciado por - RESTRICT"
+
+    Productos {
+        INTEGER Id PK "Autoincremental"
+        TEXT Nombre
+        TEXT Precio "decimal en C#"
+        INTEGER Stock
+    }
+
+    Ventas {
+        INTEGER Id PK "Autoincremental"
+        TEXT Fecha "DateTime en C#"
+    }
+
+    DetallesVenta {
+        INTEGER Id PK "Autoincremental"
+        INTEGER VentaId FK
+        INTEGER ProductoId FK
+        INTEGER Cantidad
+        TEXT PrecioUnitario "decimal - precio historico"
+    }
