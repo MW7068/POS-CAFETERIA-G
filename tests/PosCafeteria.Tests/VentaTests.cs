@@ -20,4 +20,14 @@ public class VentaTests
         // Assert
         Assert.Equal(18.00m, venta.Total);
     }
+    [Fact]
+    public void AgregarProducto_CantidadCeroOMenos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var venta = new Venta();
+        var cafe = new Producto { Id = 1, Nombre = "Café", Precio = 5.00m, Stock = 10 };
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => venta.AgregarProducto(cafe, 0));
+    }
 }
