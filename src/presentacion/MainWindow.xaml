@@ -1,13 +1,426 @@
-<Window x:Class="PosCafeteria.Presentacion.MainWindow"
+
+<Window x:Class="PosCafeteria.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="POS - Cafe de Mama Oli" Height="420" Width="720"
-        MinHeight="320" MinWidth="480">
-  <StackPanel Margin="32" VerticalAlignment="Center">
-    <TextBlock Text="Cafe de Mama Oli" FontSize="30" FontWeight="SemiBold" />
-    <TextBlock Margin="0,16,0,0" Text="Base del proyecto lista para el equipo."
-               FontSize="18" TextWrapping="Wrap" />
-    <TextBlock Margin="0,8,0,0" Text="Las funciones de ventas e inventario aun no estan implementadas."
-               TextWrapping="Wrap" />
-  </StackPanel>
+        Title="POS Cafetería"
+        Height="800"
+        Width="1250"
+        MinHeight="550"
+        MinWidth="360"
+        WindowStartupLocation="CenterScreen"
+        Background="#F7F2EB"
+        SizeChanged="Window_SizeChanged">
+
+    <Window.Resources>
+
+        <SolidColorBrush x:Key="Brown" Color="#482719"/>
+        <SolidColorBrush x:Key="DarkBrown" Color="#30190F"/>
+        <SolidColorBrush x:Key="Gold" Color="#D99A32"/>
+        <SolidColorBrush x:Key="Cream" Color="#F7F2EB"/>
+        <SolidColorBrush x:Key="CardWhite" Color="#FFFCF8"/>
+        <SolidColorBrush x:Key="TextDark" Color="#34251D"/>
+        <SolidColorBrush x:Key="Muted" Color="#8C7C70"/>
+
+        <Style x:Key="NavButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#F8EDE2"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Margin" Value="8,4"/>
+            <Setter Property="Padding" Value="15,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="9"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#67412A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StatCard" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardWhite}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderBrush" Value="#E9DDD0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid x:Name="LayoutGrid">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="SidebarColumn" Width="230"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- MENU LATERAL -->
+
+        <Border x:Name="Sidebar"
+                Grid.Column="0"
+                Background="{StaticResource DarkBrown}">
+
+            <DockPanel>
+
+                <StackPanel DockPanel.Dock="Top"
+                            Margin="15,25,15,25">
+
+                    <TextBlock Text="☕"
+                               FontSize="48"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="POS CAFETERÍA"
+                               Foreground="White"
+                               FontSize="19"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0"/>
+
+                    <TextBlock Text="Sistema de gestión"
+                               Foreground="#D7BDA8"
+                               FontSize="11"
+                               HorizontalAlignment="Center"
+                               Margin="0,4,0,0"/>
+
+                </StackPanel>
+
+                <StackPanel>
+
+                    <Button Content="⌂    Inicio"
+                            Tag="Inicio"
+                            Style="{StaticResource NavButton}"
+                            Background="{StaticResource Gold}"
+                            Click="Navigate_Click"/>
+
+                    <Button Content="🛒   Ventas"
+                            Tag="Ventas"
+                            Style="{StaticResource NavButton}"
+                            Click="Navigate_Click"/>
+
+                    <Button Content="▣    Productos"
+                            Tag="Productos"
+                            Style="{StaticResource NavButton}"
+                            Click="Navigate_Click"/>
+
+                    <Button Content="♙    Clientes"
+                            Tag="Clientes"
+                            Style="{StaticResource NavButton}"
+                            Click="Navigate_Click"/>
+
+                    <Button Content="▥    Reportes"
+                            Tag="Reportes"
+                            Style="{StaticResource NavButton}"
+                            Click="Navigate_Click"/>
+
+                    <Button Content="⚙    Configuración"
+                            Tag="Configuración"
+                            Style="{StaticResource NavButton}"
+                            Click="Navigate_Click"/>
+
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom"
+                            Margin="15,15,15,20">
+
+                    <TextBlock Text="Usuario administrador"
+                               Foreground="#EAD9CA"
+                               FontSize="12"
+                               HorizontalAlignment="Center"
+                               Margin="0,10"/>
+
+                    <Button Content="⏻   Cerrar sesión"
+                            Style="{StaticResource NavButton}"
+                            Click="Logout_Click"/>
+
+                </StackPanel>
+
+            </DockPanel>
+
+        </Border>
+
+        <!-- CONTENIDO PRINCIPAL -->
+
+        <Grid Grid.Column="1" Margin="0">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="65"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- BARRA SUPERIOR -->
+
+            <Border Grid.Row="0"
+                    Background="{StaticResource CardWhite}"
+                    BorderBrush="#E9DDD0"
+                    BorderThickness="0,0,0,1">
+
+                <Grid Margin="20,0">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="MenuButton"
+                            Grid.Column="0"
+                            Content="☰"
+                            FontSize="22"
+                            Width="42"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Visibility="Collapsed"
+                            Click="Menu_Click"/>
+
+                    <TextBlock Grid.Column="1"
+                               x:Name="PageTitle"
+                               Text="Inicio"
+                               FontSize="19"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource Brown}"
+                               VerticalAlignment="Center"
+                               Margin="10,0"/>
+
+                    <TextBlock Grid.Column="2"
+                               x:Name="ClockText"
+                               Text="POS CAFETERÍA"
+                               FontSize="12"
+                               Foreground="{StaticResource Muted}"
+                               VerticalAlignment="Center"/>
+
+                </Grid>
+
+            </Border>
+
+            <!-- PANEL DE CONTENIDO -->
+
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+
+                <StackPanel Margin="20">
+
+                    <TextBlock x:Name="WelcomeTitle"
+                               Text="¡Bienvenido al POS Cafetería!"
+                               FontSize="27"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource TextDark}"
+                               TextWrapping="Wrap"/>
+
+                    <TextBlock x:Name="PageDescription"
+                               Text="Administra tu cafetería de manera rápida y sencilla."
+                               FontSize="14"
+                               Foreground="{StaticResource Muted}"
+                               Margin="0,7,0,20"
+                               TextWrapping="Wrap"/>
+
+                    <!-- BANNER -->
+
+                    <Border Background="{StaticResource Brown}"
+                            CornerRadius="14"
+                            Padding="22"
+                            Margin="0,0,0,15">
+
+                        <StackPanel>
+                            <TextBlock Text="☕  BUEN CAFÉ, MEJORES MOMENTOS"
+                                       Foreground="#F6D7A8"
+                                       FontSize="20"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"/>
+
+                            <TextBlock Text="Gestiona tus ventas, productos y clientes desde un solo lugar."
+                                       Foreground="White"
+                                       FontSize="13"
+                                       Margin="0,10,0,0"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                    </Border>
+
+                    <!-- INDICADORES -->
+
+                    <UniformGrid x:Name="StatsGrid"
+                                 Columns="4"
+                                 Margin="-5,0,-5,15">
+
+                        <Border Style="{StaticResource StatCard}">
+                            <StackPanel>
+                                <TextBlock Text="🛒"
+                                           FontSize="25"/>
+                                <TextBlock Text="Ventas de hoy"
+                                           Foreground="{StaticResource Muted}"
+                                           Margin="0,8,0,3"/>
+                                <TextBlock Text="0"
+                                           FontSize="27"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource Brown}"/>
+                                <TextBlock Text="Operaciones registradas"
+                                           FontSize="10"
+                                           Foreground="Gray"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource StatCard}">
+                            <StackPanel>
+                                <TextBlock Text="💰"
+                                           FontSize="25"/>
+                                <TextBlock Text="Ingresos de hoy"
+                                           Foreground="{StaticResource Muted}"
+                                           Margin="0,8,0,3"/>
+                                <TextBlock Text="S/ 0.00"
+                                           FontSize="25"
+                                           FontWeight="Bold"
+                                           Foreground="#38834D"/>
+                                <TextBlock Text="Total de ventas"
+                                           FontSize="10"
+                                           Foreground="Gray"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource StatCard}">
+                            <StackPanel>
+                                <TextBlock Text="👥"
+                                           FontSize="25"/>
+                                <TextBlock Text="Clientes"
+                                           Foreground="{StaticResource Muted}"
+                                           Margin="0,8,0,3"/>
+                                <TextBlock Text="0"
+                                           FontSize="27"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource Brown}"/>
+                                <TextBlock Text="Clientes registrados"
+                                           FontSize="10"
+                                           Foreground="Gray"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource StatCard}">
+                            <StackPanel>
+                                <TextBlock Text="📦"
+                                           FontSize="25"/>
+                                <TextBlock Text="Productos"
+                                           Foreground="{StaticResource Muted}"
+                                           Margin="0,8,0,3"/>
+                                <TextBlock Text="0"
+                                           FontSize="27"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource Brown}"/>
+                                <TextBlock Text="Productos disponibles"
+                                           FontSize="10"
+                                           Foreground="Gray"/>
+                            </StackPanel>
+                        </Border>
+
+                    </UniformGrid>
+
+                    <!-- ACCESOS RAPIDOS -->
+
+                    <TextBlock Text="Accesos rápidos"
+                               FontSize="19"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource Brown}"
+                               Margin="0,5,0,10"/>
+
+                    <UniformGrid x:Name="ActionsGrid"
+                                 Columns="3"
+                                 Margin="-5,0,-5,15">
+
+                        <Button Content="🛒&#x0a;Nueva venta"
+                                Tag="Ventas"
+                                Click="Navigate_Click"
+                                Height="85"
+                                Margin="5"
+                                Background="#E9A83D"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                FontSize="15"
+                                BorderThickness="0"
+                                Cursor="Hand"/>
+
+                        <Button Content="📦&#x0a;Productos"
+                                Tag="Productos"
+                                Click="Navigate_Click"
+                                Height="85"
+                                Margin="5"
+                                Background="#67412A"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                FontSize="15"
+                                BorderThickness="0"
+                                Cursor="Hand"/>
+
+                        <Button Content="👥&#x0a;Clientes"
+                                Tag="Clientes"
+                                Click="Navigate_Click"
+                                Height="85"
+                                Margin="5"
+                                Background="#478B68"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                FontSize="15"
+                                BorderThickness="0"
+                                Cursor="Hand"/>
+
+                    </UniformGrid>
+
+                    <!-- ULTIMAS VENTAS -->
+
+                    <Border Background="{StaticResource CardWhite}"
+                            CornerRadius="12"
+                            BorderBrush="#E9DDD0"
+                            BorderThickness="1"
+                            Padding="18"
+                            Margin="0,0,0,15">
+
+                        <StackPanel>
+
+                            <TextBlock Text="Últimas ventas"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource Brown}"
+                                       Margin="0,0,0,12"/>
+
+                            <TextBlock x:Name="SalesMessage"
+                                       Text="Todavía no hay ventas registradas."
+                                       Foreground="{StaticResource Muted}"
+                                       FontSize="13"
+                                       Margin="0,5,0,5"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+                    <TextBlock Text="POS Cafetería | Sistema de gestión"
+                               HorizontalAlignment="Center"
+                               Foreground="{StaticResource Muted}"
+                               FontSize="11"
+                               Margin="0,15,0,15"/>
+
+                </StackPanel>
+
+            </ScrollViewer>
+
+        </Grid>
+
+    </Grid>
+
 </Window>
