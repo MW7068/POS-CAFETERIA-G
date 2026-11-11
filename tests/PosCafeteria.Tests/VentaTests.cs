@@ -13,7 +13,7 @@ public class VentaTests
     {
         var venta = new Venta();
 
-        Assert.Throws<ArgumentException>(() => 
+        Assert.Throws<ArgumentException>(() =>
             venta.AgregarDetalle(productoId: 1, cantidad: cantidadInvalida, precioUnitario: 10.0m));
     }
     [Fact]
