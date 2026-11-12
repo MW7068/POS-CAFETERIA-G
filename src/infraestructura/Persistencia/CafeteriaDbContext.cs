@@ -1,3 +1,5 @@
+// hecho por alex
+
 using Microsoft.EntityFrameworkCore;
 using PosCafeteria.Dominio;
 
@@ -15,9 +17,35 @@ public class CafeteriaDbContext : DbContext
     public DbSet<Venta> Ventas => Set<Venta>();
     public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
 
+    // AGREGADO POR NOSOTROS:
+    // Permite consultar, registrar y administrar clientes mediante EF Core.
+    public DbSet<Cliente> Clientes => Set<Cliente>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // AGREGADO POR NOSOTROS:
+        // Configuramos la nueva tabla Clientes y sus atributos.
+        modelBuilder.Entity<Cliente>(entidad =>
+        {
+            entidad.ToTable("Clientes");
+
+            entidad.HasKey(c => c.Id);
+
+            entidad.Property(c => c.Id)
+                .ValueGeneratedOnAdd();
+
+            // El nombre del cliente es obligatorio.
+            entidad.Property(c => c.Nombre)
+                .HasColumnType("TEXT")
+                .IsRequired();
+
+            // El celular es opcional y se almacena como texto.
+            entidad.Property(c => c.Celular)
+                .HasColumnType("TEXT")
+                .IsRequired(false);
+        });
 
         modelBuilder.Entity<Producto>(entidad =>
         {
@@ -50,6 +78,13 @@ public class CafeteriaDbContext : DbContext
 
             entidad.Property(v => v.Fecha)
                 .IsRequired();
+
+            
+            entidad.HasOne(v => v.Cliente)
+                .WithMany()
+                .HasForeignKey(v => v.ClienteId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Se calcula a partir de los detalles.
             entidad.Ignore(v => v.Total);
