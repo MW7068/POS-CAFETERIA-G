@@ -12,6 +12,7 @@ public class CafeteriaDbContext : DbContext
     }
 
     public DbSet<Producto> Productos => Set<Producto>();
+    public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Venta> Ventas => Set<Venta>();
     public DbSet<DetalleVenta> DetallesVenta => Set<DetalleVenta>();
 
@@ -19,6 +20,24 @@ public class CafeteriaDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // --- ENTIDAD CLIENTE ---
+        modelBuilder.Entity<Cliente>(entidad =>
+        {
+            entidad.ToTable("Clientes");
+
+            entidad.HasKey(c => c.Id);
+
+            entidad.Property(c => c.Id)
+                .ValueGeneratedOnAdd();
+
+            entidad.Property(c => c.Nombre)
+                .IsRequired();
+
+            entidad.Property(c => c.Celular)
+                .IsRequired(false);
+        });
+
+        // --- ENTIDAD PRODUCTO ---
         modelBuilder.Entity<Producto>(entidad =>
         {
             entidad.ToTable("Productos");
@@ -39,6 +58,7 @@ public class CafeteriaDbContext : DbContext
                 .IsRequired();
         });
 
+        // --- ENTIDAD VENTA ---
         modelBuilder.Entity<Venta>(entidad =>
         {
             entidad.ToTable("Ventas");
@@ -50,6 +70,13 @@ public class CafeteriaDbContext : DbContext
 
             entidad.Property(v => v.Fecha)
                 .IsRequired();
+
+            // Relación opcional con Cliente (RESTRICT)
+            entidad.HasOne(v => v.Cliente)
+                .WithMany(c => c.Ventas)
+                .HasForeignKey(v => v.ClienteId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Se calcula a partir de los detalles.
             entidad.Ignore(v => v.Total);
@@ -66,6 +93,7 @@ public class CafeteriaDbContext : DbContext
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
         });
 
+        // --- ENTIDAD DETALLE VENTA ---
         modelBuilder.Entity<DetalleVenta>(entidad =>
         {
             entidad.ToTable("DetallesVenta");
@@ -75,8 +103,7 @@ public class CafeteriaDbContext : DbContext
             entidad.Property(d => d.Id)
                 .ValueGeneratedOnAdd();
 
-            // Columna administrada por EF, sin modificar el dominio.
-            entidad.Property<int>("VentaId")
+            entidad.Property(d => d.VentaId)
                 .IsRequired();
 
             entidad.Property(d => d.Cantidad)
@@ -92,9 +119,9 @@ public class CafeteriaDbContext : DbContext
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // La entidad acumula cantidades del mismo producto.
+            // La entidad acumula cantidades del mismo producto por venta.
             entidad.HasIndex(
-                    "VentaId",
+                    nameof(DetalleVenta.VentaId),
                     nameof(DetalleVenta.ProductoId))
                 .IsUnique();
         });

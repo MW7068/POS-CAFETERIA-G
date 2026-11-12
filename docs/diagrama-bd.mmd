@@ -1,23 +1,31 @@
 erDiagram
-    Ventas ||--o{ DetallesVenta : "contiene - CASCADE"
+    Clientes ||--o{ Ventas : "realiza - RESTRICT"
+    Ventas ||--|{ DetallesVenta : "contiene - CASCADE"
     Productos ||--o{ DetallesVenta : "referenciado por - RESTRICT"
 
-    Productos {
-        INTEGER Id PK "Autoincremental"
-        TEXT Nombre
-        TEXT Precio "decimal en C#"
-        INTEGER Stock
+    Clientes {
+        int Id PK
+        string Nombre
+        string Celular
     }
 
     Ventas {
-        INTEGER Id PK "Autoincremental"
-        TEXT Fecha "DateTime en C#"
+        int Id PK
+        DateTime Fecha
+        int ClienteId FK
+    }
+
+    Productos {
+        int Id PK
+        string Nombre
+        decimal Precio
+        int Stock
     }
 
     DetallesVenta {
-        INTEGER Id PK "Autoincremental"
-        INTEGER VentaId FK
-        INTEGER ProductoId FK
-        INTEGER Cantidad
-        TEXT PrecioUnitario "decimal - precio historico"
+        int Id PK
+        int VentaId FK
+        int ProductoId FK
+        int Cantidad
+        decimal PrecioUnitario
     }
