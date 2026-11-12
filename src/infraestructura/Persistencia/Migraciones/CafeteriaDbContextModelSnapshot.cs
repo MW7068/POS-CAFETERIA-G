@@ -17,6 +17,24 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.14");
 
+            modelBuilder.Entity("PosCafeteria.Dominio.Cliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Celular")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Clientes", (string)null);
+                });
+
             modelBuilder.Entity("PosCafeteria.Dominio.DetalleVenta", b =>
                 {
                     b.Property<int>("Id")
@@ -72,10 +90,15 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("ClienteId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
 
                     b.ToTable("Ventas", (string)null);
                 });
@@ -93,6 +116,21 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
                         .HasForeignKey("VentaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Venta", b =>
+                {
+                    b.HasOne("PosCafeteria.Dominio.Cliente", "Cliente")
+                        .WithMany("Ventas")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Cliente");
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Cliente", b =>
+                {
+                    b.Navigation("Ventas");
                 });
 
             modelBuilder.Entity("PosCafeteria.Dominio.Venta", b =>
