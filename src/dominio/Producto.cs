@@ -19,7 +19,7 @@ public class Producto
     }
 
     // Constructor restringido para EF Core y accesible para el proyecto de pruebas
-    internal Producto() { }
+    public Producto() { }
 
     public Producto(int id, string nombre, decimal precio, int existencias = 0)
     {

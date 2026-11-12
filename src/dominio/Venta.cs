@@ -11,7 +11,7 @@ public class Venta
     public int Id { get; private set; }
     public DateTime Fecha { get; private set; } = DateTime.UtcNow;
     public bool EstaConfirmada { get; private set; }
-    
+
     public IReadOnlyList<DetalleVenta> Detalles => _detalles.AsReadOnly();
 
     public decimal Total => _detalles.Sum(d => d.Cantidad * d.PrecioUnitario);
