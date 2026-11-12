@@ -5,6 +5,7 @@ namespace PosCafeteria.Dominio;
 public class DetalleVenta
 {
     public int Id { get; private set; }
+    public int VentaId { get; set; } // <--- AGREGAR ESTA LÍNEA
     public int ProductoId { get; private set; }
     public int Cantidad { get; private set; }
     public decimal PrecioUnitario { get; private set; }
