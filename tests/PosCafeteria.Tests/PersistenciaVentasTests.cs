@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using PosCafeteria.Dominio;
@@ -153,6 +154,61 @@ public class PersistenciaVentasTests : IDisposable
             .Precio;
 
         Assert.Equal(9.00m, precioActual);
+    }
+
+    [Fact]
+    public async Task GuardarVenta_ConCliente_PersisteCorrectamente()
+    {
+        // Arrange
+        using var context = CrearContexto();
+
+        var producto = new Producto { Nombre = "Cafe", Precio = 10.5m, Stock = 10 };
+        context.Productos.Add(producto);
+
+        var cliente = new Cliente { Nombre = "Juan Perez", Celular = "987654321" };
+        context.Clientes.Add(cliente);
+        await context.SaveChangesAsync();
+
+        var venta = new Venta { ClienteId = cliente.Id };
+        venta.AgregarProducto(producto.Id, 2, 10.5m);
+
+        // Act
+        context.Ventas.Add(venta);
+        await context.SaveChangesAsync();
+
+        // Assert
+        var ventaGuardada = await context.Ventas
+            .Include(v => v.Cliente)
+            .FirstOrDefaultAsync(v => v.Id == venta.Id);
+
+        Assert.NotNull(ventaGuardada);
+        Assert.NotNull(ventaGuardada.Cliente);
+        Assert.Equal("Juan Perez", ventaGuardada.Cliente.Nombre);
+    }
+
+    [Fact]
+    public async Task GuardarVenta_SinCliente_PersisteCorrectamente()
+    {
+        // Arrange
+        using var context = CrearContexto();
+
+        var producto = new Producto { Nombre = "Pan", Precio = 5.0m, Stock = 10 };
+        context.Productos.Add(producto);
+        await context.SaveChangesAsync();
+
+        var venta = new Venta { ClienteId = null };
+        venta.AgregarProducto(producto.Id, 1, 5.0m);
+
+        // Act
+        context.Ventas.Add(venta);
+        await context.SaveChangesAsync();
+
+        // Assert
+        var ventaGuardada = await context.Ventas
+            .FirstOrDefaultAsync(v => v.Id == venta.Id);
+
+        Assert.NotNull(ventaGuardada);
+        Assert.Null(ventaGuardada.ClienteId);
     }
 
     [Fact]
