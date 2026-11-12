@@ -1,17 +1,27 @@
 erDiagram
+    direction TB
+
+    Clientes |o..o{ Ventas : "realiza - RESTRICT"
     Ventas ||--o{ DetallesVenta : "contiene - CASCADE"
     Productos ||--o{ DetallesVenta : "referenciado por - RESTRICT"
+
+    Clientes {
+        INTEGER Id PK "Autoincremental"
+        TEXT Nombre "Obligatorio"
+        TEXT Celular "Opcional"
+    }
+
+    Ventas {
+        INTEGER Id PK "Autoincremental"
+        TEXT Fecha "DateTime en C#"
+        INTEGER ClienteId FK "Opcional"
+    }
 
     Productos {
         INTEGER Id PK "Autoincremental"
         TEXT Nombre
         TEXT Precio "decimal en C#"
         INTEGER Stock
-    }
-
-    Ventas {
-        INTEGER Id PK "Autoincremental"
-        TEXT Fecha "DateTime en C#"
     }
 
     DetallesVenta {
