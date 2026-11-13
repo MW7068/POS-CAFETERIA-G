@@ -1,13 +1,1785 @@
-<Window x:Class="PosCafeteria.Presentacion.MainWindow"
+<Window x:Class="CafeDeMamaOliPOS.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="POS - Cafe de Mama Oli" Height="420" Width="720"
-        MinHeight="320" MinWidth="480">
-  <StackPanel Margin="32" VerticalAlignment="Center">
-    <TextBlock Text="Cafe de Mama Oli" FontSize="30" FontWeight="SemiBold" />
-    <TextBlock Margin="0,16,0,0" Text="Base del proyecto lista para el equipo."
-               FontSize="18" TextWrapping="Wrap" />
-    <TextBlock Margin="0,8,0,0" Text="Las funciones de ventas e inventario aun no estan implementadas."
-               TextWrapping="Wrap" />
-  </StackPanel>
+        Title="Cafetería de Mamá Oli - Sistema Punto de Venta"
+        Height="820" Width="1366"
+        ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
+        Background="#FDF2F2"
+        FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <!-- Paleta Roja -->
+        <SolidColorBrush x:Key="PrimaryRed" Color="#DC2626"/>
+        <SolidColorBrush x:Key="DarkRed" Color="#B91C1C"/>
+        <SolidColorBrush x:Key="LightRedBg" Color="#FEF2F2"/>
+        <SolidColorBrush x:Key="BorderGray" Color="#E5E7EB"/>
+        <SolidColorBrush x:Key="TextDark" Color="#1F2937"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#6B7280"/>
+
+        <!-- Estilo Botón Primario Rojo -->
+        <Style x:Key="RedButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryRed}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource DarkRed}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Botón Secundario Borde Rojo -->
+        <Style x:Key="OutlineRedButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryRed}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryRed}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource LightRedBg}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Botón Barra Superior -->
+        <Style x:Key="NavbarActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#991B1B"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="#FCA5A5" BorderThickness="1"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#7F1D1D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Tarjeta-Botón del Menú de Gerencia -->
+        <Style x:Key="GerenciaMenuCardButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+            <Setter Property="BorderBrush" Value="#FCA5A5"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Height" Value="115"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="CardBdr" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="14" Padding="14">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#DC2626" BlurRadius="8" ShadowDepth="1" Opacity="0.08"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CardBdr" Property="Background" Value="#FEF2F2"/>
+                                <Setter TargetName="CardBdr" Property="BorderBrush" Value="#DC2626"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.03" Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.03" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Teclas del Teclado Alfanumérico -->
+        <Style x:Key="FullKeypadButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="KeyBorder" Background="{TemplateBinding Background}" BorderBrush="#D1D5DB"
+                                BorderThickness="1" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="KeyBorder" Property="Background" Value="#FEE2E2"/>
+                                <Setter TargetName="KeyBorder" Property="BorderBrush" Value="#DC2626"/>
+                                <Setter Property="Foreground" Value="#DC2626"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="KeyBorder" Property="Background" Value="#DC2626"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Interactivo y Llamativo para Tarjetas de Productos -->
+        <Style x:Key="InteractiveProductCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FECACA"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#DC2626" BlurRadius="6" ShadowDepth="1" Opacity="0.08"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="#DC2626"/>
+                    <Setter Property="Background" Value="#FFF5F5"/>
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.05" Duration="0:0:0.14"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.05" Duration="0:0:0.14"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)" To="16" Duration="0:0:0.14"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" To="0.30" Duration="0:0:0.14"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.14"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.14"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)" To="6" Duration="0:0:0.14"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" To="0.08" Duration="0:0:0.14"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Estilo Animado para Filas del Carrito -->
+        <Style x:Key="AnimatedCartRowStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#F3F4F6"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.22"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="0.93" To="1.0" Duration="0:0:0.22"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0.93" To="1.0" Duration="0:0:0.22"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FEF2F2"/>
+                    <Setter Property="BorderBrush" Value="#FECACA"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Estilo Animado para Categorías Inferiores -->
+        <Style x:Key="CategoryCardButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="BorderBrush" Value="#FCA5A5"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="CardBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="14"
+                                Padding="8">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#DC2626" BlurRadius="6" ShadowDepth="1" Opacity="0.10"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CardBorder" Property="Background" Value="#FFF1F2"/>
+                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="#DC2626"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.05" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.05" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="CardBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)" To="16" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="CardBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" To="0.32" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="CardBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)" To="6" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="CardBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" To="0.10" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="CardBorder" Property="Background" Value="#FEE2E2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Botón Circular +/- -->
+        <Style x:Key="CircleQtyButton" TargetType="Button">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryRed}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryRed}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource PrimaryRed}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="64"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- BARRA SUPERIOR ROJA (NAVBAR) -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryRed}" Padding="24,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="☕ Cafetería de Mamá Oli" Foreground="White" FontSize="21" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="📊 GERENCIA" Click="BtnOpenGerenciaModal_Click"
+                            Style="{StaticResource NavbarActionButtonStyle}" ToolTip="Abrir Panel de Gerencia, Caja, Reportes y Series"/>
+
+                    <Border Background="#7F1D1D" CornerRadius="12" Padding="12,5" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtActiveSessionBadge" Text="Venta #1 • Público General" Foreground="White" FontSize="12" FontWeight="SemiBold"/>
+                    </Border>
+
+                    <Button x:Name="BtnCliente" Click="BtnCliente_Click" Background="White" Foreground="{StaticResource PrimaryRed}"
+                            Padding="12,6" Margin="0,0,12,0" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="👤 CLIENTE" FontWeight="Bold" FontSize="12.5" VerticalAlignment="Center"/>
+                                        <Border Background="{StaticResource PrimaryRed}" CornerRadius="9" Padding="6,1" Margin="6,0,0,0">
+                                            <TextBlock x:Name="TxtSalesCount" Text="1" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtLoggedUserName" Text="Cajero" Foreground="White" FontWeight="SemiBold" FontSize="13.5" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Border Width="34" Height="34" CornerRadius="17" Background="#FCA5A5" BorderBrush="White" BorderThickness="1.5" Margin="0,0,10,0">
+                            <TextBlock x:Name="TxtLoggedUserInitials" Text="CM" Foreground="#7F1D1D" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <Button Content="Cerrar Sesión" Click="BtnLogout_Click" Background="#7F1D1D" Foreground="White" FontSize="11.5" FontWeight="Bold"
+                                Padding="11,6" BorderThickness="0" Cursor="Hand" ToolTip="Cerrar sesión y volver al ingreso">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ÁREA PRINCIPAL POS -->
+        <Grid Grid.Row="1" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.1*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- PANEL IZQUIERDO: CATÁLOGO DE PRODUCTOS Y CATEGORÍAS -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="92"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" CornerRadius="16" Padding="20" BorderBrush="#FCA5A5" BorderThickness="1.5">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FFFFFF" Offset="0"/>
+                            <GradientStop Color="#FFF8F8" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Effect>
+                        <DropShadowEffect Color="#DC2626" BlurRadius="14" ShadowDepth="2" Opacity="0.08"/>
+                    </Border.Effect>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="+ AGREGAR PRODUCTO" Click="BtnOpenAddProductModal_Click"
+                                        Style="{StaticResource RedButtonStyle}" Padding="14,8" FontSize="12"/>
+                                <Border Background="#FEE2E2" CornerRadius="12" Padding="10,5" Margin="12,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="TxtCategoryBanner" Text="✨ Carta: Cafés" FontWeight="Bold" FontSize="13" Foreground="#B91C1C"/>
+                                </Border>
+                            </StackPanel>
+
+                            <Border HorizontalAlignment="Right" Width="300" Height="38" Background="White" BorderBrush="#FCA5A5" BorderThickness="1.5"
+                                    CornerRadius="19" Padding="14,0,4,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="32"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TxtSearch" TextChanged="TxtSearch_TextChanged" Background="Transparent" BorderThickness="0"
+                                             VerticalContentAlignment="Center" FontSize="13" Foreground="{StaticResource TextDark}"/>
+                                    <Border Grid.Column="1" Width="30" Height="30" CornerRadius="15" Background="{StaticResource PrimaryRed}">
+                                        <TextBlock Text="🔍" Foreground="White" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="ProductsItemsControl">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="5" VerticalAlignment="Top"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="6" Padding="8" Style="{StaticResource InteractiveProductCardStyle}"
+                                                Opacity="{Binding CardOpacity}"
+                                                MouseLeftButtonDown="ProductCard_MouseDown"
+                                                MouseLeftButtonUp="ProductCard_Click">
+                                            <Grid>
+                                                <Button Content="{Binding StatusBadgeText}" Tag="{Binding}" Click="BtnToggleProductStatus_Click"
+                                                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                        Background="{Binding StatusBadgeBg}" Foreground="{Binding StatusBadgeFg}"
+                                                        FontWeight="Bold" FontSize="9" Padding="6,2"
+                                                        BorderThickness="0" Cursor="Hand" Panel.ZIndex="10"
+                                                        ToolTip="Clic para cambiar entre Activo e Inactivo">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+
+                                                <Button Content="✕" Tag="{Binding}" Click="BtnDeleteCatalogProduct_Click"
+                                                        Width="22" Height="22" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                        Background="#FEE2E2" Foreground="#DC2626" FontWeight="Bold" FontSize="10"
+                                                        BorderThickness="0" Cursor="Hand" Panel.ZIndex="10"
+                                                        ToolTip="Eliminar producto del catálogo">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="11">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+
+                                                <StackPanel HorizontalAlignment="Center" Margin="0,18,0,0">
+                                                    <Border Width="84" Height="84" CornerRadius="14" Margin="0,0,0,8">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                <GradientStop Color="#FEE2E2" Offset="0"/>
+                                                                <GradientStop Color="#FEF2F2" Offset="1"/>
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <TextBlock Text="{Binding Icon}" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextDark}"
+                                                               TextAlignment="Center" TextWrapping="Wrap" Height="36"/>
+                                                    <Border Background="#FEF2F2" CornerRadius="8" Padding="8,2" Margin="0,4,0,0" HorizontalAlignment="Center">
+                                                        <TextBlock Text="{Binding PriceFormatted}" FontWeight="ExtraBold" FontSize="14"
+                                                                   Foreground="{StaticResource PrimaryRed}" TextAlignment="Center"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <!-- Categorías Inferiores -->
+                <UniformGrid Grid.Row="2" Columns="5">
+                    <Button x:Name="BtnCatCafes" Tag="Cafés" Click="Category_Click" Margin="0,0,8,0"
+                            Style="{StaticResource CategoryCardButtonStyle}"
+                            Background="#FEF2F2" BorderBrush="#DC2626" BorderThickness="2.5">
+                        <StackPanel>
+                            <TextBlock Text="☕" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Cafés" FontSize="13" FontWeight="Bold" Foreground="#DC2626" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnCatBebidas" Tag="Bebidas" Click="Category_Click" Margin="4,0"
+                            Style="{StaticResource CategoryCardButtonStyle}">
+                        <StackPanel>
+                            <TextBlock Text="🍹" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Bebidas" FontSize="13" FontWeight="Bold" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnCatParrillas" Tag="Parrillas" Click="Category_Click" Margin="4,0"
+                            Style="{StaticResource CategoryCardButtonStyle}">
+                        <StackPanel>
+                            <TextBlock Text="🍖" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Parrillas" FontSize="13" FontWeight="Bold" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnCatPiqueos" Tag="Piqueos" Click="Category_Click" Margin="4,0"
+                            Style="{StaticResource CategoryCardButtonStyle}">
+                        <StackPanel>
+                            <TextBlock Text="🍟" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Piqueos" FontSize="13" FontWeight="Bold" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnCatPostres" Tag="Postres" Click="Category_Click" Margin="8,0,0,0"
+                            Style="{StaticResource CategoryCardButtonStyle}">
+                        <StackPanel>
+                            <TextBlock Text="🍰" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Postres" FontSize="13" FontWeight="Bold" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Button>
+                </UniformGrid>
+            </Grid>
+
+            <!-- PANEL DERECHO: DETALLE DE VENTA -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="46"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="52"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="White" CornerRadius="14" BorderBrush="{StaticResource BorderGray}" BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="16,12,16,10">
+                            <Grid>
+                                <TextBlock Text="Detalle de Venta" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{StaticResource TextDark}"/>
+                                <Border x:Name="BadgeOrderType" Background="#DC2626" CornerRadius="6" Padding="7,2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock x:Name="TxtOrderTypeTag" Text="☕ EN LOCAL" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                                </Border>
+                            </Grid>
+
+                            <Border Background="{StaticResource LightRedBg}" BorderBrush="#FECACA" BorderThickness="1.5" CornerRadius="8" Padding="12,10" Margin="0,8,0,0"
+                                    Cursor="Hand" MouseLeftButtonUp="CheckoutCustomerCard_Click" ToolTip="Clic para editar cliente o cambiar de venta">
+                                <StackPanel>
+                                    <Grid>
+                                        <TextBlock x:Name="TxtCheckoutCustomerName" Text="👤 Público General" FontSize="15"
+                                                   Foreground="{StaticResource DarkRed}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock x:Name="TxtCheckoutCustomerDni" Text="DNI: 00000000" FontSize="13"
+                                                   Foreground="{StaticResource PrimaryRed}" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <TextBlock x:Name="TxtCheckoutCustomerDetails" Text="📍 Mostrador  •  📞 -" FontSize="13"
+                                               Foreground="{StaticResource TextDark}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="TxtCheckoutCustomerEmail" Text="" FontSize="13"
+                                               Foreground="{StaticResource TextMuted}" Margin="0,3,0,0" Visibility="Collapsed" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="TxtCheckoutDocType" Text="Comprobante: Boleta de Venta (Serie: B001)" FontSize="12"
+                                               Foreground="#B91C1C" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <Border Grid.Row="1" Background="#FEF2F2" Padding="16,9" BorderBrush="#FECACA" BorderThickness="0,1.5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="75"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="📦 Producto" FontWeight="Bold" Foreground="#991B1B" FontSize="12.5"/>
+                                <TextBlock Grid.Column="1" Text="🔢 CANT." FontWeight="Bold" Foreground="#991B1B" FontSize="12.5" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="💲 Importe" FontWeight="Bold" Foreground="#991B1B" FontSize="12.5" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </Border>
+
+                        <ListBox x:Name="CartListBox" Grid.Row="2" BorderThickness="0" Padding="6,4" HorizontalContentAlignment="Stretch"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0,2"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <ContentPresenter/>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource AnimatedCartRowStyle}" Padding="6,9">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="26"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="85"/>
+                                                <ColumnDefinition Width="74"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Button Grid.Column="0" Content="🗑" Click="RemoveItem_Click" Tag="{Binding}" Background="Transparent"
+                                                    BorderThickness="0" Foreground="#DC2626" FontSize="13" Cursor="Hand" ToolTip="Quitar producto"/>
+
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" FontSize="13"
+                                                       FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Button Content="-" Style="{StaticResource CircleQtyButton}" Click="DecreaseQty_Click" Tag="{Binding}"/>
+                                                <Border Background="#FEF2F2" CornerRadius="6" Padding="6,2" Margin="3,0">
+                                                    <TextBlock Text="{Binding Quantity}" MinWidth="16" TextAlignment="Center" VerticalAlignment="Center"
+                                                               FontWeight="Bold" Foreground="#B91C1C"/>
+                                                </Border>
+                                                <Button Content="+" Style="{StaticResource CircleQtyButton}" Click="IncreaseQty_Click" Tag="{Binding}"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="3" Text="{Binding LineTotalFormatted}" VerticalAlignment="Center"
+                                                       HorizontalAlignment="Right" FontWeight="Bold" FontSize="13.5" Foreground="#111827"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <StackPanel Grid.Row="3" Margin="16,8,16,14">
+                            <Separator Background="#FCA5A5" Margin="0,0,0,8"/>
+
+                            <Grid Margin="0,4">
+                                <TextBlock Text="🏷️ Descuento (%)" FontSize="13.5" FontWeight="Bold" Foreground="#B91C1C" VerticalAlignment="Center"/>
+                                <TextBox x:Name="TxtDiscount" Text="0" TextChanged="TxtDiscount_TextChanged" Width="64" Height="28"
+                                         HorizontalAlignment="Right" TextAlignment="Center" VerticalContentAlignment="Center"
+                                         FontWeight="Bold" FontSize="13" Foreground="#B91C1C" BorderBrush="#FCA5A5" BorderThickness="1.5"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <TextBlock Text="💵 Op. Gravada (Sub Total)" FontSize="13.5" FontWeight="Bold" Foreground="#1F2937" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtSubTotal" Text="S/ 0.00" FontSize="14" HorizontalAlignment="Right" FontWeight="Bold" Foreground="#111827"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="📊 IGV (%)" FontSize="13.5" FontWeight="Bold" Foreground="#DC2626" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <ComboBox x:Name="CmbIgvRate" SelectionChanged="CmbIgvRate_SelectionChanged" Width="78" Height="28"
+                                              VerticalContentAlignment="Center" SelectedIndex="0" FontWeight="Bold" FontSize="13" Foreground="#B91C1C">
+                                        <ComboBoxItem Content="18%" Tag="18"/>
+                                        <ComboBoxItem Content="10.5%" Tag="10.5"/>
+                                    </ComboBox>
+                                </StackPanel>
+                                <TextBlock x:Name="TxtTax" Text="S/ 0.00" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="Bold" Foreground="#111827"/>
+                            </Grid>
+
+                            <Separator Background="#FCA5A5" Margin="0,8"/>
+
+                            <Grid>
+                                <TextBlock Text="Total a Pagar" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+                                <TextBlock x:Name="TxtTotal" Text="S/ 0.00" FontSize="21" FontWeight="ExtraBold"
+                                           Foreground="{StaticResource PrimaryRed}" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="1.2*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="Cancelar Orden" Click="BtnCancelOrder_Click" Style="{StaticResource OutlineRedButtonStyle}"/>
+                    <Button Grid.Column="2" Content="🛵 Orden para Llevar" Click="BtnOpenTakeawayModal_Click" Style="{StaticResource OutlineRedButtonStyle}"/>
+                </Grid>
+
+                <Button x:Name="BtnPay" Grid.Row="4" Content="Cobrar (S/ 0.00)" Click="BtnOpenCheckoutModal_Click" Style="{StaticResource RedButtonStyle}" FontSize="16"/>
+            </Grid>
+        </Grid>
+
+        <!-- ==================== MODAL 1: GESTOR DE CLIENTE Y MULTIVENTA ==================== -->
+        <Grid x:Name="ModalClienteOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="850" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="👤 Cafetería de Mamá Oli - Registro de Cliente y Multiventa" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock Text="DNI solo 8 números • Teléfono solo números (máx. 15 dígitos) • Correo opcional con @dominio válido" FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseModal_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="18" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.25*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="DATOS DEL CLIENTE (VENTA ACTUAL)" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextMuted}" Margin="0,0,0,8"/>
+
+                            <Border x:Name="BorderValidationError" Background="#FEE2E2" BorderBrush="#EF4444" BorderThickness="1"
+                                    CornerRadius="6" Padding="10,7" Margin="0,0,0,10" Visibility="Collapsed">
+                                <TextBlock x:Name="TxtValidationError" Text="Error de validación" Foreground="#B91C1C"
+                                           FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                            </Border>
+
+                            <TextBlock Text="Nombre y Apellido *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="TxtClienteNombre" Height="34" Padding="8,0" VerticalContentAlignment="Center" Margin="0,0,0,10"
+                                     TextChanged="InputCliente_TextChanged"/>
+
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="DNI (Solo 8 números) *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtClienteDni" Height="34" Padding="8,0" VerticalContentAlignment="Center" MaxLength="8"
+                                             PreviewTextInput="NumericOnly_PreviewTextInput"
+                                             DataObject.Pasting="NumericOnly_Pasting"
+                                             TextChanged="InputCliente_TextChanged"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Teléfono (Solo números, máx. 15) *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtClienteTelefono" Height="34" Padding="8,0" VerticalContentAlignment="Center" MaxLength="15"
+                                             PreviewTextInput="NumericOnly_PreviewTextInput"
+                                             DataObject.Pasting="NumericOnly_Pasting"
+                                             TextChanged="InputCliente_TextChanged"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Dirección *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="TxtClienteDireccion" Height="34" Padding="8,0" VerticalContentAlignment="Center" Margin="0,0,0,10"
+                                     TextChanged="InputCliente_TextChanged"/>
+
+                            <TextBlock Text="Correo Electrónico (Opcional - debe incluir @dominio.com)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="TxtClienteCorreo" Height="34" Padding="8,0" VerticalContentAlignment="Center" Margin="0,0,0,16"
+                                     TextChanged="InputCliente_TextChanged"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="Guardar en Venta Actual" Click="BtnGuardarClienteActual_Click"
+                                        Style="{StaticResource OutlineRedButtonStyle}" Height="38"/>
+                                <Button Grid.Column="2" Content="+ Crear Nueva Multiventa" Click="BtnNuevaMultiventa_Click"
+                                        Style="{StaticResource RedButtonStyle}" Height="38"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <Border Grid.Column="2" Background="#F9FAFB" CornerRadius="10" Padding="14" BorderBrush="{StaticResource BorderGray}" BorderThickness="1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="SESIONES DE MULTIVENTA ACTIVAS" FontWeight="Bold" FontSize="12"
+                                           Foreground="{StaticResource TextMuted}" Margin="0,0,0,10"/>
+
+                                <ListBox x:Name="SessionsListBox" Grid.Row="1" Background="Transparent" BorderThickness="0"
+                                         SelectionChanged="SessionsListBox_SelectionChanged" HorizontalContentAlignment="Stretch">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="White" BorderBrush="{StaticResource PrimaryRed}" BorderThickness="1"
+                                                    CornerRadius="8" Padding="10" Margin="0,0,0,8" Cursor="Hand">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <TextBlock Text="{Binding SessionTitle}" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                                                        <TextBlock Text="{Binding SessionTotalFormatted}" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding CustomerSummary}" FontSize="12" Foreground="{StaticResource TextDark}" Margin="0,3,0,0"/>
+                                                    <TextBlock Text="{Binding ItemsCountText}" FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ==================== MODAL 2: ORDEN PARA LLEVAR ==================== -->
+        <Grid x:Name="ModalTakeawayOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="880" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="🛵 Orden para Llevar - Multiventana y Comprobante" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock Text="Registra los datos del cliente y elige Boleta o Factura Electrónica para su pedido para llevar" FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseTakeawayModal_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="18" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.3*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="TIPO DE COMPROBANTE *" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextMuted}" Margin="0,0,0,6"/>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton x:Name="RbTakeawayBoleta" Grid.Column="0" Content="🧾 Boleta de Venta" IsChecked="True"
+                                             Checked="TakeawayDocType_Changed" FontWeight="Bold" FontSize="13"/>
+                                <RadioButton x:Name="RbTakeawayFactura" Grid.Column="2" Content="🏢 Factura Electrónica"
+                                             Checked="TakeawayDocType_Changed" FontWeight="Bold" FontSize="13"/>
+                            </Grid>
+
+                            <TextBlock Text="Nombre y Apellido *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="TxtTakeawayNombre" Height="32" Padding="8,0" VerticalContentAlignment="Center" Margin="0,0,0,8"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="DNI (8 dígitos) *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtTakeawayDni" Height="32" Padding="8,0" VerticalContentAlignment="Center" MaxLength="8"
+                                             PreviewTextInput="NumericOnly_PreviewTextInput" DataObject.Pasting="NumericOnly_Pasting"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Teléfono (Máx. 15 dígitos) *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtTakeawayTelefono" Height="32" Padding="8,0" VerticalContentAlignment="Center" MaxLength="15"
+                                             PreviewTextInput="NumericOnly_PreviewTextInput" DataObject.Pasting="NumericOnly_Pasting"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Dirección de Entrega / Referencia *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="TxtTakeawayDireccion" Height="32" Padding="8,0" VerticalContentAlignment="Center" Margin="0,0,0,8"/>
+
+                            <TextBlock Text="Correo Electrónico (Opcional con @)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="TxtTakeawayCorreo" Height="32" Padding="8,0" VerticalContentAlignment="Center" Margin="0,0,0,10"/>
+
+                            <StackPanel x:Name="PanelTakeawayFactura" Visibility="Collapsed" Background="#FEF2F2" Margin="0,0,0,12">
+                                <Border BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <StackPanel>
+                                        <TextBlock Text="DATOS DE FACTURACIÓN ELECTRÓNICA" FontWeight="Bold" FontSize="11" Foreground="#B91C1C" Margin="0,0,0,6"/>
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1*"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="1.5*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="RUC (11 dígitos) *" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,3"/>
+                                                <TextBox x:Name="TxtTakeawayRuc" Height="30" Padding="8,0" VerticalContentAlignment="Center" MaxLength="11"
+                                                         PreviewTextInput="NumericOnly_PreviewTextInput" DataObject.Pasting="NumericOnly_Pasting"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="Razón Social *" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,3"/>
+                                                <TextBox x:Name="TxtTakeawayRazonSocial" Height="30" Padding="8,0" VerticalContentAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <TextBlock Text="Dirección Fiscal *" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,3"/>
+                                        <TextBox x:Name="TxtTakeawayDirFiscal" Height="30" Padding="8,0" VerticalContentAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="1.2*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="Marcar Venta Actual p/ Llevar" Click="BtnConvertCurrentToTakeaway_Click"
+                                        Style="{StaticResource OutlineRedButtonStyle}" Height="38" FontSize="12"/>
+                                <Button Grid.Column="2" Content="+ Nueva Multiventa para Llevar" Click="BtnCreateNewTakeawaySession_Click"
+                                        Style="{StaticResource RedButtonStyle}" Height="38" FontSize="12"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <Border Grid.Column="2" Background="#F9FAFB" CornerRadius="10" Padding="14" BorderBrush="{StaticResource BorderGray}" BorderThickness="1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="MULTIVENTAS ACTIVAS (LOCAL Y LLEVAR)" FontWeight="Bold" FontSize="12"
+                                           Foreground="{StaticResource TextMuted}" Margin="0,0,0,10"/>
+
+                                <ListBox x:Name="TakeawaySessionsListBox" Grid.Row="1" Background="Transparent" BorderThickness="0"
+                                         SelectionChanged="TakeawaySessionsListBox_SelectionChanged" HorizontalContentAlignment="Stretch">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="White" BorderBrush="{StaticResource PrimaryRed}" BorderThickness="1"
+                                                    CornerRadius="8" Padding="10" Margin="0,0,0,8" Cursor="Hand">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <TextBlock Text="{Binding SessionTitle}" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                                                        <TextBlock Text="{Binding SessionTotalFormatted}" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding CustomerSummary}" FontSize="12" Foreground="{StaticResource TextDark}" Margin="0,3,0,0"/>
+                                                    <TextBlock Text="{Binding ItemsCountText}" FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ==================== MODAL 3: AGREGAR NUEVO PRODUCTO ==================== -->
+        <Grid x:Name="ModalAddProductOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="460" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid Margin="0,0,0,16">
+                        <TextBlock Text="➕ Agregar Nuevo Producto" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                        <Button Content="✕" Click="BtnCloseAddProductModal_Click" HorizontalAlignment="Right"
+                                Background="Transparent" BorderThickness="0" FontSize="16" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <TextBlock Text="Nombre del Producto *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtNewProdName" Height="34" Padding="8,0" VerticalContentAlignment="Center" Margin="0,0,0,12"/>
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Precio (S/) *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="TxtNewProdPrice" Height="34" Padding="8,0" VerticalContentAlignment="Center"
+                                     PreviewTextInput="DecimalOnly_PreviewTextInput"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Categoría *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <ComboBox x:Name="CmbNewProdCategory" Height="34" VerticalContentAlignment="Center" SelectedIndex="0">
+                                <ComboBoxItem Content="Cafés"/>
+                                <ComboBoxItem Content="Bebidas"/>
+                                <ComboBoxItem Content="Parrillas"/>
+                                <ComboBoxItem Content="Piqueos"/>
+                                <ComboBoxItem Content="Postres"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Ícono Representativo" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <ComboBox x:Name="CmbNewProdIcon" Height="34" VerticalContentAlignment="Center" SelectedIndex="0">
+                                <ComboBoxItem Content="☕ Café / Infusión" Tag="☕"/>
+                                <ComboBoxItem Content="🥤 Bebida Fría / Jugo" Tag="🥤"/>
+                                <ComboBoxItem Content="🥐 Panadería / Sándwich" Tag="🥐"/>
+                                <ComboBoxItem Content="🍰 Postre / Torta" Tag="🍰"/>
+                                <ComboBoxItem Content="🍖 Parrilla / Plato" Tag="🍖"/>
+                                <ComboBoxItem Content="🍟 Piqueo / Snack" Tag="🍟"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Estado del Producto *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <Grid Height="34">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton x:Name="RbProdActivo" Grid.Column="0" Content="Activo" IsChecked="True"
+                                             FontWeight="Bold" Foreground="#059669" VerticalContentAlignment="Center"/>
+                                <RadioButton x:Name="RbProdInactivo" Grid.Column="2" Content="Inactivo"
+                                             FontWeight="Bold" Foreground="#DC2626" VerticalContentAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Cancelar" Click="BtnCloseAddProductModal_Click" Style="{StaticResource OutlineRedButtonStyle}" Height="38"/>
+                        <Button Grid.Column="2" Content="Guardar Producto" Click="BtnSaveNewProduct_Click" Style="{StaticResource RedButtonStyle}" Height="38"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ==================== MODAL 4: COBRAR (CON PROPINA EN TARJETA, RENIEC Y SUNAT) ==================== -->
+        <Grid x:Name="ModalCheckoutOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="550" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="🧾 Emisión de Comprobante y Cobro" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock x:Name="TxtCheckoutSeriePreview" Text="Serie Asignada: B001-000001" FontSize="12" FontWeight="Bold" Foreground="#B91C1C"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseCheckoutModal_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="16" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <TextBlock Text="TIPO DE COMPROBANTE *" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMuted}" Margin="0,0,0,6"/>
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <RadioButton x:Name="RbBoleta" Grid.Column="0" Content="🧾 Boleta de Venta" IsChecked="True"
+                                     Checked="ComprobanteType_Changed" FontWeight="Bold" FontSize="14" VerticalContentAlignment="Center"/>
+                        <RadioButton x:Name="RbFactura" Grid.Column="2" Content="🏢 Factura Electrónica"
+                                     Checked="ComprobanteType_Changed" FontWeight="Bold" FontSize="14" VerticalContentAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Panel Campos Boleta + Botón RENIEC -->
+                    <StackPanel x:Name="PanelBoletaFields" Visibility="Visible" Margin="0,0,0,12">
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.1*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="1.4*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="DNI (8 dígitos) *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TxtBoletaDni" Grid.Column="0" Height="34" Padding="8,0" VerticalContentAlignment="Center" MaxLength="8"
+                                             PreviewTextInput="NumericOnly_PreviewTextInput" DataObject.Pasting="NumericOnly_Pasting"/>
+                                    <Button Grid.Column="2" Content="🔍 RENIEC" Click="BtnConsultarReniec_Click"
+                                            Style="{StaticResource RedButtonStyle}" Padding="10,0" Height="34" FontSize="11.5"
+                                            ToolTip="Extraer nombres desde padrón RENIEC"/>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Nombre y Apellido *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <TextBox x:Name="TxtBoletaNombre" Height="34" Padding="8,0" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Panel Campos Factura + Botón SUNAT -->
+                    <StackPanel x:Name="PanelFacturaFields" Visibility="Collapsed" Margin="0,0,0,12">
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.1*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="1.4*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="RUC (11 dígitos) *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TxtFacturaRuc" Grid.Column="0" Height="34" Padding="8,0" VerticalContentAlignment="Center" MaxLength="11"
+                                             PreviewTextInput="NumericOnly_PreviewTextInput" DataObject.Pasting="NumericOnly_Pasting"/>
+                                    <Button Grid.Column="2" Content="🔍 SUNAT" Click="BtnConsultarSunat_Click"
+                                            Style="{StaticResource RedButtonStyle}" Padding="10,0" Height="34" FontSize="11.5"
+                                            ToolTip="Extraer Razón Social y Dirección desde SUNAT"/>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Razón Social *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <TextBox x:Name="TxtFacturaRazonSocial" Height="34" Padding="8,0" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="Dirección Fiscal *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <TextBox x:Name="TxtFacturaDireccion" Height="34" Padding="8,0" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+
+                    <Border Background="#F9FAFB" BorderBrush="{StaticResource BorderGray}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,16">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,10">
+                                <TextBlock Text="Total Consumo:" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtModalTotalCobrar" Text="S/ 0.00" FontSize="20" FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryRed}" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Método de Pago" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="CmbPaymentMethod" Height="32" SelectedIndex="0" VerticalContentAlignment="Center"
+                                              SelectionChanged="CmbPaymentMethod_SelectionChanged">
+                                        <ComboBoxItem Content="Efectivo"/>
+                                        <ComboBoxItem Content="Yape / Plin"/>
+                                        <ComboBoxItem Content="Tarjeta"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock x:Name="LblMontoRecibido" Text="Monto Recibido (S/)" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtMontoRecibido" Height="32" Padding="8,0" VerticalContentAlignment="Center"
+                                             PreviewTextInput="DecimalOnly_PreviewTextInput" TextChanged="TxtMontoRecibido_TextChanged"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock x:Name="LblVueltoOPropina" Text="Vuelto (S/)" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="TxtVuelto" Text="S/ 0.00" FontSize="16" FontWeight="Bold"
+                                               Foreground="#059669" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Aviso visual dinámico cuando hay Propina en Tarjeta -->
+                            <Border x:Name="BannerCardTipInfo" Background="#D1FAE5" BorderBrush="#10B981" BorderThickness="1"
+                                    CornerRadius="6" Padding="8,5" Margin="0,10,0,0" Visibility="Collapsed">
+                                <TextBlock x:Name="TxtBannerCardTip" Text="🎁 Excedente en Tarjeta registrado como Propina: S/ 0.00"
+                                           Foreground="#065F46" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="1.5*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Volver" Click="BtnCloseCheckoutModal_Click" Style="{StaticResource OutlineRedButtonStyle}" Height="42"/>
+                        <Button Grid.Column="2" Content="Confirmar y Emitir Comprobante" Click="BtnConfirmarPagoFinal_Click" Style="{StaticResource RedButtonStyle}" Height="42" FontSize="14"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ==================== MODAL VISTA PREVIA COMPROBANTE + IMPRIMIR / EXPORTAR PDF ==================== -->
+        <Grid x:Name="ModalInvoicePreviewOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="480" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="📄 Comprobante Electrónico Emitido" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock Text="Listo para imprimir o exportar en formato PDF" FontSize="11.5" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseInvoicePreview_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="16" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Documento Imprimible -->
+                    <Border x:Name="PrintableReceiptArea" Background="#FAFAFA" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,14">
+                        <ScrollViewer MaxHeight="380" VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="TxtInvoiceDocumentContent" FontFamily="Consolas" FontSize="12" Foreground="#111827" TextWrapping="Wrap"/>
+                        </ScrollViewer>
+                    </Border>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.3*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="0.9*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="🖨️ Imprimir / PDF" Click="BtnPrintOrExportPdf_Click" Style="{StaticResource RedButtonStyle}" Height="40" FontSize="12.5"/>
+                        <Button Grid.Column="2" Content="💾 Guardar TXT" Click="BtnExportTxtTicket_Click" Style="{StaticResource OutlineRedButtonStyle}" Height="40" FontSize="12"/>
+                        <Button Grid.Column="4" Content="Cerrar" Click="BtnCloseInvoicePreview_Click" Style="{StaticResource OutlineRedButtonStyle}" Height="40" FontSize="12"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ==================== MODAL 5: PANEL PRINCIPAL DE GERENCIA (MENÚ DE BOTONES) ==================== -->
+        <Grid x:Name="ModalGerenciaOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="760" Background="White" CornerRadius="16" Padding="26" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid Margin="0,0,0,18">
+                        <StackPanel>
+                            <TextBlock Text="📊 Panel de Gerencia - Administración y Reportes" FontSize="21" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock Text="Selecciona una opción para abrir su ventana correspondiente" FontSize="12.5" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseGerenciaModal_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="18" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <TextBlock Text="OPERACIONES DE CAJA Y CONFIGURACIÓN" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource TextMuted}" Margin="8,0,0,4"/>
+                    <UniformGrid Columns="3" Margin="0,0,0,14">
+                        <Button Click="BtnOpenCashMovementFromGerencia_Click" Style="{StaticResource GerenciaMenuCardButtonStyle}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="💰" FontSize="30" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Egreso / Ingreso" FontSize="14" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}" HorizontalAlignment="Center" Margin="0,6,0,2"/>
+                                <TextBlock Text="Movimientos de efectivo" FontSize="11" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Click="BtnOpenCashCloseFromGerencia_Click" Style="{StaticResource GerenciaMenuCardButtonStyle}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="🔒" FontSize="30" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Cierre de Caja" FontSize="14" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}" HorizontalAlignment="Center" Margin="0,6,0,2"/>
+                                <TextBlock Text="Arqueo y cierre de turno" FontSize="11" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Click="BtnOpenSeriesConfigFromGerencia_Click" Style="{StaticResource GerenciaMenuCardButtonStyle}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="🔢" FontSize="30" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Series Boleta y Factura" FontSize="14" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}" HorizontalAlignment="Center" Margin="0,6,0,2"/>
+                                <TextBlock x:Name="TxtGerenciaSeriesPreview" Text="Boleta: B001 • Factura: F001" FontSize="11" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </UniformGrid>
+
+                    <TextBlock Text="REPORTES DEL SISTEMA" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource TextMuted}" Margin="8,0,0,4"/>
+                    <UniformGrid Columns="3">
+                        <Button Click="BtnOpenWinRepComprobantes_Click" Style="{StaticResource GerenciaMenuCardButtonStyle}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="🧾" FontSize="30" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Venta de Boleta o Factura" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,6,0,2"/>
+                                <TextBlock Text="Comprobantes, propinas y total" FontSize="11" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Click="BtnOpenWinRepProductos_Click" Style="{StaticResource GerenciaMenuCardButtonStyle}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="🏆" FontSize="30" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Detalles de Venta" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,6,0,2"/>
+                                <TextBlock Text="Ranking de productos vendidos" FontSize="11" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Click="BtnOpenWinRepCierres_Click" Style="{StaticResource GerenciaMenuCardButtonStyle}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="📋" FontSize="30" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Cierre de Caja" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,6,0,2"/>
+                                <TextBlock Text="Historial de cierres realizados" FontSize="11" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ==================== VENTANA A: EGRESO O INGRESO DE EFECTIVO ==================== -->
+        <Grid x:Name="ModalCashMovementOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="480" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="💰 Egreso / Ingreso de Efectivo" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock Text="Conectado directamente con el Cierre de Caja del turno" FontSize="11.5" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseCashMovementModal_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="16" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <TextBlock Text="Tipo de Movimiento *" FontSize="12" FontWeight="Bold" Margin="0,0,0,6"/>
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <RadioButton x:Name="RbCashIngreso" Grid.Column="0" Content="📥 Ingreso de Efectivo" IsChecked="True"
+                                     FontWeight="Bold" Foreground="#059669" FontSize="13"/>
+                        <RadioButton x:Name="RbCashEgreso" Grid.Column="2" Content="📤 Egreso de Efectivo"
+                                     FontWeight="Bold" Foreground="#DC2626" FontSize="13"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="1.6*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Monto (S/) *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="TxtCashMoveAmount" Height="34" Padding="8,0" VerticalContentAlignment="Center"
+                                     PreviewTextInput="DecimalOnly_PreviewTextInput"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Motivo / Concepto *" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBox x:Name="TxtCashMoveReason" Height="34" Padding="8,0" VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Button Content="Registrar Movimiento" Click="BtnSaveCashMovement_Click" Style="{StaticResource RedButtonStyle}" Height="38" Margin="0,0,0,14"/>
+
+                    <TextBlock Text="MOVIMIENTOS DEL TURNO ACTUAL" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMuted}" Margin="0,0,0,6"/>
+                    <Border Background="#F9FAFB" BorderBrush="{StaticResource BorderGray}" BorderThickness="1" CornerRadius="8" Padding="8" Height="130">
+                        <ListBox x:Name="CashMovementsListBox" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Stretch">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,3">
+                                        <TextBlock Text="{Binding SummaryText}" FontSize="12" Foreground="{StaticResource TextDark}"/>
+                                        <TextBlock Text="{Binding AmountFormatted}" FontSize="12" FontWeight="Bold" Foreground="{Binding AmountColor}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ==================== VENTANA B: CIERRE DE CAJA OPERATIVO ==================== -->
+        <Grid x:Name="ModalCashCloseOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="540" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="🔒 Cierre de Caja - Resumen del Turno" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock x:Name="TxtCashCloseShiftInfo" Text="Cajero: Admin • Turno Activo" FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseCashCloseModal_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="16" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1.5" CornerRadius="10" Padding="14" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="RECAUDACIÓN POR MÉTODOS DE PAGO" FontSize="11.5" FontWeight="Bold" Foreground="#991B1B" Margin="0,0,0,8"/>
+
+                            <Grid Margin="0,3">
+                                <TextBlock Text="💵 Ventas en Efectivo:" FontSize="13.5" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="TxtCloseEfectivo" Text="S/ 0.00" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,3">
+                                <TextBlock Text="📱 Ventas con Yape / Plin:" FontSize="13.5" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="TxtCloseYape" Text="S/ 0.00" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,3">
+                                <TextBlock Text="💳 Ventas con Tarjeta (Consumo):" FontSize="13.5" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="TxtCloseTarjeta" Text="S/ 0.00" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,3">
+                                <TextBlock Text="🎁 Propinas Recaudadas (Tarjeta):" FontSize="13.5" FontWeight="SemiBold" Foreground="#059669"/>
+                                <TextBlock x:Name="TxtClosePropinas" Text="S/ 0.00" FontSize="14" FontWeight="Bold" Foreground="#059669" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <Separator Background="#FCA5A5" Margin="0,8"/>
+
+                            <Grid>
+                                <TextBlock Text="Total Ventas + Propinas:" FontSize="14.5" FontWeight="Bold" Foreground="#B91C1C"/>
+                                <TextBlock x:Name="TxtCloseTotalVentas" Text="S/ 0.00" FontSize="16" FontWeight="ExtraBold" Foreground="#B91C1C" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="MOVIMIENTOS DE EFECTIVO EN CAJA" FontSize="11.5" FontWeight="Bold" Foreground="#374151" Margin="0,0,0,8"/>
+
+                            <Grid Margin="0,3">
+                                <TextBlock Text="📥 Monto Ingreso al Sistema:" FontSize="13.5" FontWeight="SemiBold" Foreground="#059669"/>
+                                <TextBlock x:Name="TxtCloseMontoIngreso" Text="S/ 0.00" FontSize="14" FontWeight="Bold" Foreground="#059669" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,3">
+                                <TextBlock Text="📤 Monto Egreso del Sistema:" FontSize="13.5" FontWeight="SemiBold" Foreground="#DC2626"/>
+                                <TextBlock x:Name="TxtCloseMontoEgreso" Text="S/ 0.00" FontSize="14" FontWeight="Bold" Foreground="#DC2626" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <Separator Background="#D1D5DB" Margin="0,8"/>
+
+                            <Grid>
+                                <TextBlock Text="💰 Efectivo Final en Gaveta:" FontSize="15" FontWeight="Bold" Foreground="#111827"/>
+                                <TextBlock x:Name="TxtCloseEfectivoGaveta" Text="S/ 0.00" FontSize="17" FontWeight="ExtraBold" Foreground="#059669" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="1.5*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Volver a Gerencia" Click="BtnCloseCashCloseModal_Click" Style="{StaticResource OutlineRedButtonStyle}" Height="40"/>
+                        <Button Grid.Column="2" Content="✅ Registrar Cierre de Turno" Click="BtnConfirmarCierreCaja_Click" Style="{StaticResource RedButtonStyle}" Height="40" FontSize="13.5"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ==================== VENTANA C: CONFIGURACIÓN DE SERIES BOLETA Y FACTURA ==================== -->
+        <Grid x:Name="ModalSeriesConfigOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="460" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="🔢 Configuración de Series SUNAT" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock Text="Define la serie y correlativo inicial para Boletas y Facturas" FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseSeriesConfigModal_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="16" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="🧾 BOLETA DE VENTA ELECTRÓNICA" FontSize="12" FontWeight="Bold" Foreground="#B91C1C" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Serie (Ej: B001) *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtConfigSerieBoleta" Height="34" Padding="8,0" VerticalContentAlignment="Center" MaxLength="4" CharacterCasing="Upper"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Correlativo Actual *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtConfigCorrBoleta" Height="34" Padding="8,0" VerticalContentAlignment="Center" MaxLength="8"
+                                             PreviewTextInput="NumericOnly_PreviewTextInput"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="🏢 FACTURA ELECTRÓNICA" FontSize="12" FontWeight="Bold" Foreground="#1F2937" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Serie (Ej: F001) *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtConfigSerieFactura" Height="34" Padding="8,0" VerticalContentAlignment="Center" MaxLength="4" CharacterCasing="Upper"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Correlativo Actual *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtConfigCorrFactura" Height="34" Padding="8,0" VerticalContentAlignment="Center" MaxLength="8"
+                                             PreviewTextInput="NumericOnly_PreviewTextInput"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="1.4*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Cancelar" Click="BtnCloseSeriesConfigModal_Click" Style="{StaticResource OutlineRedButtonStyle}" Height="40"/>
+                        <Button Grid.Column="2" Content="Guardar Series" Click="BtnSaveSeriesConfig_Click" Style="{StaticResource RedButtonStyle}" Height="40"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ==================== VENTANA D: REPORTE VENTA DE BOLETA O FACTURA ==================== -->
+        <Grid x:Name="ModalWinRepComprobantesOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="940" Height="530" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="🧾 Venta de Boleta o Factura" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock Text="Detalle de comprobantes emitidos con serie, tipo de pago, propina y suma total" FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseWinRepComprobantes_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="18" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <DataGrid x:Name="DgComprobantes" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
+                              Background="White" BorderBrush="#E5E7EB" RowHeight="32" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Fecha / Hora" Binding="{Binding DateFormatted}" Width="120"/>
+                            <DataGridTextColumn Header="Tipo" Binding="{Binding DocType}" Width="80"/>
+                            <DataGridTextColumn Header="Serie - N°" Binding="{Binding SerieCorrelativo}" Width="115"/>
+                            <DataGridTextColumn Header="DNI / RUC" Binding="{Binding DocNumber}" Width="100"/>
+                            <DataGridTextColumn Header="Cliente / Razón Social" Binding="{Binding ClientName}" Width="*"/>
+                            <DataGridTextColumn Header="Pago" Binding="{Binding PaymentMethod}" Width="90"/>
+                            <DataGridTextColumn Header="Consumo" Binding="{Binding TotalFormatted}" Width="85"/>
+                            <DataGridTextColumn Header="Propina" Binding="{Binding TipFormatted}" Width="80"/>
+                            <DataGridTextColumn Header="Cobrado" Binding="{Binding GrandTotalFormatted}" Width="90"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <Border Grid.Row="2" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1.5" CornerRadius="10" Padding="14" Margin="0,12,0,0">
+                        <UniformGrid Columns="4">
+                            <StackPanel>
+                                <TextBlock Text="Suma Total Boletas:" FontSize="11.5" Foreground="#6B7280" FontWeight="Bold"/>
+                                <TextBlock x:Name="TxtGerenciaTotalBoletas" Text="S/ 0.00" FontSize="16" FontWeight="Bold" Foreground="#1F2937"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="Suma Total Facturas:" FontSize="11.5" Foreground="#6B7280" FontWeight="Bold"/>
+                                <TextBlock x:Name="TxtGerenciaTotalFacturas" Text="S/ 0.00" FontSize="16" FontWeight="Bold" Foreground="#1F2937"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="Total Propinas (Tarjeta):" FontSize="11.5" Foreground="#059669" FontWeight="Bold"/>
+                                <TextBlock x:Name="TxtGerenciaTotalPropinas" Text="S/ 0.00" FontSize="16" FontWeight="Bold" Foreground="#059669"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="SUMA TOTAL GENERAL:" FontSize="11.5" Foreground="#B91C1C" FontWeight="Bold"/>
+                                <TextBlock x:Name="TxtGerenciaTotalGeneral" Text="S/ 0.00" FontSize="18" FontWeight="ExtraBold" Foreground="#DC2626"/>
+                            </StackPanel>
+                        </UniformGrid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ==================== VENTANA E: DETALLES DE VENTA (PRODUCTOS VENDIDOS) ==================== -->
+        <Grid x:Name="ModalWinRepProductosOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="760" Height="480" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="🏆 Detalles de Venta" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock Text="Ranking de productos vendidos ordenados por demanda e ingresos" FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseWinRepProductos_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="18" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <DataGrid x:Name="DgProductosRanking" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
+                              Background="White" BorderBrush="#E5E7EB" RowHeight="34" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Puesto" Binding="{Binding Rank}" Width="80"/>
+                            <DataGridTextColumn Header="Producto Vendido" Binding="{Binding ProductName}" Width="*"/>
+                            <DataGridTextColumn Header="Unidades Vendidas" Binding="{Binding TotalQuantity}" Width="150"/>
+                            <DataGridTextColumn Header="Monto Recaudado" Binding="{Binding TotalRevenueFormatted}" Width="150"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ==================== VENTANA F: HISTORIAL DE CIERRES DE CAJA ==================== -->
+        <Grid x:Name="ModalWinRepCierresOverlay" Grid.RowSpan="2" Background="#80000000" Visibility="Collapsed">
+            <Border Width="920" Height="480" Background="White" CornerRadius="14" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="📋 Cierre de Caja - Historial" FontSize="19" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"/>
+                            <TextBlock Text="Registro de cierres de caja realizados en los turnos respectivos" FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                        </StackPanel>
+                        <Button Content="✕" Click="BtnCloseWinRepCierres_Click" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" FontSize="18" FontWeight="Bold" Cursor="Hand"/>
+                    </Grid>
+
+                    <DataGrid x:Name="DgCierresTurno" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
+                              Background="White" BorderBrush="#E5E7EB" RowHeight="34" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Turno" Binding="{Binding ShiftTitle}" Width="90"/>
+                            <DataGridTextColumn Header="Cajero" Binding="{Binding CashierName}" Width="100"/>
+                            <DataGridTextColumn Header="Fecha / Hora" Binding="{Binding ClosedAtFormatted}" Width="135"/>
+                            <DataGridTextColumn Header="Ventas" Binding="{Binding TotalSalesFormatted}" Width="105"/>
+                            <DataGridTextColumn Header="Propinas Tarj." Binding="{Binding TotalTipsFormatted}" Width="105"/>
+                            <DataGridTextColumn Header="Ingresos Caja" Binding="{Binding CashInFormatted}" Width="105"/>
+                            <DataGridTextColumn Header="Egresos Caja" Binding="{Binding CashOutFormatted}" Width="105"/>
+                            <DataGridTextColumn Header="Efectivo Final" Binding="{Binding FinalDrawerFormatted}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ==================== VENTANA DE INGRESO COMPACTA CON LOGO Y TECLADO QWERTY + NÚMEROS ==================== -->
+        <Grid x:Name="LoginScreenOverlay" Grid.RowSpan="2" Visibility="Visible">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#991B1B" Offset="0"/>
+                    <GradientStop Color="#DC2626" Offset="0.5"/>
+                    <GradientStop Color="#7F1D1D" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <Border Width="420" Background="White" CornerRadius="16" Padding="24,20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="26" ShadowDepth="6" Opacity="0.35"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <Border Width="72" Height="72" CornerRadius="36" Background="#FEF2F2" BorderBrush="#DC2626" BorderThickness="2.5"
+                            HorizontalAlignment="Center" Margin="0,0,0,8">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="☕" FontSize="30" HorizontalAlignment="Center"/>
+                            <TextBlock Text="MAMÁ OLI" FontSize="8.5" FontWeight="ExtraBold" Foreground="#DC2626" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Cafetería de Mamá Oli" FontSize="20" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Ingreso al Sistema Punto de Venta" FontSize="11.5" Foreground="{StaticResource TextMuted}"
+                               HorizontalAlignment="Center" Margin="0,1,0,14"/>
+
+                    <Border x:Name="BorderLoginError" Background="#FEE2E2" BorderBrush="#EF4444" BorderThickness="1"
+                            CornerRadius="6" Padding="8,5" Margin="0,0,0,10" Visibility="Collapsed">
+                        <TextBlock x:Name="TxtLoginError" Text="Usuario o contraseña incorrectos" Foreground="#B91C1C"
+                                   FontSize="11.5" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    </Border>
+
+                    <TextBlock Text="Usuario *" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,0,0,3"/>
+                    <TextBox x:Name="TxtLoginUser" Height="34" Padding="10,0" FontSize="13.5" VerticalContentAlignment="Center"
+                             Margin="0,0,0,10" GotFocus="TxtLoginUser_GotFocus" KeyDown="LoginInput_KeyDown"/>
+
+                    <TextBlock Text="Contraseña (Clic para activar teclado alfanumérico) *" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,0,0,3"/>
+                    <PasswordBox x:Name="PwdLoginPassword" Height="34" Padding="10,0" FontSize="15" VerticalContentAlignment="Center"
+                                 Margin="0,0,0,10" GotFocus="PwdLoginPassword_GotFocus" PreviewMouseLeftButtonDown="PwdLoginPassword_MouseDown"
+                                 KeyDown="LoginInput_KeyDown"/>
+
+                    <Border x:Name="VirtualKeypadPanel" Background="#F3F4F6" BorderBrush="#E5E7EB" BorderThickness="1"
+                            CornerRadius="10" Padding="6" Margin="0,0,0,12" Visibility="Collapsed">
+                        <StackPanel>
+                            <Grid Margin="2,0,2,4">
+                                <TextBlock Text="⌨️ Teclado Interactivo Activo" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource PrimaryRed}" VerticalAlignment="Center"/>
+                                <Button Content="Ocultar" Click="BtnHideKeypad_Click" HorizontalAlignment="Right" Background="Transparent"
+                                        BorderThickness="0" FontSize="10.5" Foreground="{StaticResource TextMuted}" Cursor="Hand"/>
+                            </Grid>
+
+                            <UniformGrid Columns="10">
+                                <Button Content="1" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="2" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="3" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="4" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="5" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="6" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="7" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="8" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="9" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="0" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                            </UniformGrid>
+
+                            <UniformGrid Columns="10">
+                                <Button Content="q" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="w" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="e" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="r" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="t" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="y" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="u" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="i" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="o" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="p" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                            </UniformGrid>
+
+                            <UniformGrid Columns="9" Margin="10,0">
+                                <Button Content="a" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="s" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="d" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="f" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="g" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="h" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="j" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="k" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                <Button Content="l" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                            </UniformGrid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.3*"/>
+                                    <ColumnDefinition Width="7*"/>
+                                    <ColumnDefinition Width="1.4*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="BtnCapsLock" Grid.Column="0" Content="⇧" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadCaps_Click" ToolTip="Mayúsculas / Minúsculas"/>
+                                <UniformGrid Grid.Column="1" Columns="7">
+                                    <Button Content="z" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                    <Button Content="x" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                    <Button Content="c" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                    <Button Content="v" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                    <Button Content="b" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                    <Button Content="n" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                    <Button Content="m" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadChar_Click"/>
+                                </UniformGrid>
+                                <Button Grid.Column="2" Content="⌫" Style="{StaticResource FullKeypadButtonStyle}" Click="KeypadBackspace_Click" ToolTip="Borrar carácter"/>
+                            </Grid>
+
+                            <Button Content="Limpiar Contraseña" Style="{StaticResource FullKeypadButtonStyle}" Height="28" FontSize="11" Click="KeypadClear_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Content="Ingresar al Sistema" Click="BtnLoginSubmit_Click" Style="{StaticResource RedButtonStyle}" Height="38" FontSize="14"/>
+
+                    <TextBlock Text="Demo: Usuario 'cajero' o 'admin' • Contraseña: '1234' o 'oli123'" FontSize="10.5"
+                               Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
 </Window>
