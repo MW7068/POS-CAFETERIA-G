@@ -42,6 +42,9 @@ public class Venta
     public void AgregarProducto(int productoId, int cantidad, decimal precioUnitario)
         => AgregarDetalle(productoId, $"Producto #{productoId}", cantidad, precioUnitario);
 
+    public void AgregarDetalle(int productoId, int cantidad, decimal precioUnitario)
+        => AgregarDetalle(productoId, $"Producto #{productoId}", cantidad, precioUnitario);
+
     public void AgregarDetalle(int productoId, string nombreProducto, int cantidad, decimal precioUnitario)
     {
         if (Estado != EstadoVenta.Borrador) throw new InvalidOperationException("Venta cerrada.");
