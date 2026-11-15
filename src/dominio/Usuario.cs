@@ -7,8 +7,7 @@ public class Usuario
 {
     public int Id { get; private set; }
     public string NombreUsuario { get; private set; } = string.Empty;
-    public string PasswordHash { get; private set; } = string.Empty;
-    public string PasswordSalt { get; private set; } = string.Empty;
+    public string Password { get; private set; } = string.Empty;
     public RolUsuario Rol { get; private set; } = RolUsuario.Cajero;
     public bool Activo { get; private set; } = true;
 
@@ -31,15 +30,18 @@ public class Usuario
 
         byte[] sal = RandomNumberGenerator.GetBytes(16);
         byte[] hash = Rfc2898DeriveBytes.Pbkdf2(password, sal, 100_000, HashAlgorithmName.SHA256, 32);
-        PasswordSalt = Convert.ToBase64String(sal);
-        PasswordHash = Convert.ToBase64String(hash);
+        Password = $"{Convert.ToBase64String(sal)}:{Convert.ToBase64String(hash)}";
     }
 
     public bool VerificarPassword(string password)
     {
-        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(PasswordSalt)) return false;
-        byte[] sal = Convert.FromBase64String(PasswordSalt);
-        byte[] esperado = Convert.FromBase64String(PasswordHash);
+        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(Password)) return false;
+
+        var partes = Password.Split(':');
+        if (partes.Length != 2) return Password == password;
+
+        byte[] sal = Convert.FromBase64String(partes[0]);
+        byte[] esperado = Convert.FromBase64String(partes[1]);
         byte[] actual = Rfc2898DeriveBytes.Pbkdf2(password, sal, 100_000, HashAlgorithmName.SHA256, esperado.Length);
         return CryptographicOperations.FixedTimeEquals(actual, esperado);
     }

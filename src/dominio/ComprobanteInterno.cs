@@ -8,27 +8,25 @@ public class ComprobanteInterno
 
     public int Id { get; private set; }
     public int VentaId { get; private set; }
-    public string Serie { get; private set; } = "INT-001";
-    public int Numero { get; private set; }
     public string ClienteNombre { get; private set; } = "Público general";
     public decimal Total { get; private set; }
+    public DateTime FechaEmisionUtc { get; private set; } = DateTime.UtcNow;
 
-    public string NumeroCompleto => $"{Serie}-{Numero:D6}";
+    public string NumeroTicket => $"#{Id:D6}";
 
     private ComprobanteInterno() { }
 
-    public static ComprobanteInterno Emitir(Venta venta, Pago pago, string clienteNombre, string serie, int numero)
+    public static ComprobanteInterno Emitir(Venta venta, Pago pago, string? clienteNombre = null)
     {
-        if (venta.Estado != EstadoVenta.Confirmada || numero <= 0)
-            throw new InvalidOperationException("No se puede emitir comprobante.");
+        if (venta.Estado != EstadoVenta.Confirmada)
+            throw new InvalidOperationException("Solo se emite comprobante para ventas confirmadas.");
 
         return new ComprobanteInterno
         {
             VentaId = venta.Id,
-            Serie = serie.Trim().ToUpperInvariant(),
-            Numero = numero,
             ClienteNombre = string.IsNullOrWhiteSpace(clienteNombre) ? "Público general" : clienteNombre.Trim(),
-            Total = pago.MontoTotal
+            Total = pago.MontoTotal,
+            FechaEmisionUtc = DateTime.UtcNow
         };
     }
 }
