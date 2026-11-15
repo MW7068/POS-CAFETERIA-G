@@ -27,12 +27,33 @@ public class Venta
 
     public void AgregarProducto(Producto producto, int cantidad)
     {
-        if (Estado != EstadoVenta.Borrador) throw new InvalidOperationException("Venta cerrada.");
+        ArgumentNullException.ThrowIfNull(producto);
         if (!producto.Activo) throw new InvalidOperationException("Producto inactivo.");
+        AgregarDetalle(producto.Id, producto.Nombre, cantidad, producto.Precio);
+    }
 
-        var item = _detalles.FirstOrDefault(d => d.ProductoId == producto.Id);
+    public void AgregarProducto(Producto producto, int cantidad, decimal precioUnitario)
+    {
+        ArgumentNullException.ThrowIfNull(producto);
+        if (!producto.Activo) throw new InvalidOperationException("Producto inactivo.");
+        AgregarDetalle(producto.Id, producto.Nombre, cantidad, precioUnitario);
+    }
+
+    public void AgregarProducto(int productoId, int cantidad, decimal precioUnitario)
+        => AgregarDetalle(productoId, $"Producto #{productoId}", cantidad, precioUnitario);
+
+    public void AgregarDetalle(int productoId, string nombreProducto, int cantidad, decimal precioUnitario)
+    {
+        if (Estado != EstadoVenta.Borrador) throw new InvalidOperationException("Venta cerrada.");
+        var item = _detalles.FirstOrDefault(d => d.ProductoId == productoId);
         if (item != null) item.ActualizarCantidad(item.Cantidad + cantidad);
-        else _detalles.Add(new DetalleVenta(producto.Id, producto.Nombre, cantidad, producto.Precio));
+        else _detalles.Add(new DetalleVenta(productoId, nombreProducto, cantidad, precioUnitario));
+    }
+
+    public void AgregarDetalle(DetalleVenta detalle)
+    {
+        ArgumentNullException.ThrowIfNull(detalle);
+        AgregarDetalle(detalle.ProductoId, detalle.NombreProducto, detalle.Cantidad, detalle.PrecioUnitario);
     }
 
     public void QuitarProducto(int productoId)
