@@ -1,30 +1,10 @@
-using System;
-
 namespace PosCafeteria.Dominio;
 
-public class MovimientoCaja
-{
-    public int Id { get; private set; }
-    public int TurnoCajaId { get; private set; }
-    public TipoMovimientoCaja Tipo { get; private set; }
-    public decimal Monto { get; private set; }
-    public string Concepto { get; private set; } = string.Empty;
-    public DateTime FechaUtc { get; private set; } = DateTime.UtcNow;
-
-    private MovimientoCaja() { }
-
-    public static MovimientoCaja Crear(int turnoCajaId, TipoMovimientoCaja tipo, decimal monto, string concepto)
-    {
-        if (turnoCajaId <= 0 || monto <= 0m || string.IsNullOrWhiteSpace(concepto))
-            throw new ArgumentException("Movimiento de caja inválido.");
-
-        return new MovimientoCaja
-        {
-            TurnoCajaId = turnoCajaId,
-            Tipo = tipo,
-            Monto = decimal.Round(monto, 2, MidpointRounding.AwayFromZero),
-            Concepto = concepto.Trim(),
-            FechaUtc = DateTime.UtcNow
-        };
-    }
-}
+public enum RolUsuario { Administrador = 1, Cajero = 2 }
+public enum EstadoVenta { Borrador = 1, Confirmada = 2, Anulada = 3 }
+public enum ModalidadAtencion { EnLocal = 1, ParaLlevar = 2 }
+public enum TipoMovimientoStock { Ingreso = 1, SalidaVenta = 2, Ajuste = 3, ReversoAnulacion = 4 }
+public enum TipoDocumentoCliente { Ninguno = 0, Dni = 1, Ruc = 2 }
+public enum MetodoPago { Efectivo = 1, YapePlin = 2, Tarjeta = 3, SinCobroAutorizado = 4 }
+public enum EstadoTurno { Abierto = 1, Cerrado = 2 }
+public enum TipoMovimientoCaja { VentaEfectivo = 1, IngresoManual = 2, EgresoManual = 3, ReembolsoEfectivo = 4 }
