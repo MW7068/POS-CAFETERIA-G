@@ -8,102 +8,35 @@ public class TurnoCaja
 {
     public int Id { get; private set; }
     public EstadoTurno Estado { get; private set; } = EstadoTurno.Abierto;
-
-    public int UsuarioAperturaId { get; private set; }
+    public int UsuarioId { get; private set; }
     public DateTime FechaAperturaUtc { get; private set; } = DateTime.UtcNow;
     public decimal MontoApertura { get; private set; }
-
-    public int? UsuarioCierreId { get; private set; }
-    public DateTime? FechaCierreUtc { get; private set; }
-    public decimal? EfectivoEsperadoCierre { get; private set; }
-    public decimal? EfectivoContadoCierre { get; private set; }
-    public decimal? DiferenciaCierre { get; private set; }
-    public string? ObservacionCierre { get; private set; }
+    public decimal? EfectivoContado { get; private set; }
 
     private TurnoCaja() { }
 
-    public static TurnoCaja Abrir(int usuarioAperturaId, decimal montoApertura)
+    public static TurnoCaja Abrir(int usuarioId, decimal montoApertura)
     {
-        if (usuarioAperturaId <= 0)
-            throw new ArgumentException("Se requiere un usuario válido para abrir turno.", nameof(usuarioAperturaId));
-
-        if (montoApertura < 0m || decimal.Round(montoApertura, 2, MidpointRounding.AwayFromZero) != montoApertura)
-            throw new ArgumentException("El monto de apertura debe ser no negativo con máximo dos decimales.", nameof(montoApertura));
-
+        if (usuarioId <= 0 || montoApertura < 0m) throw new ArgumentException("Apertura inválida.");
         return new TurnoCaja
         {
-            Estado = EstadoTurno.Abierto,
-            UsuarioAperturaId = usuarioAperturaId,
-            FechaAperturaUtc = DateTime.UtcNow,
-            MontoApertura = montoApertura
+            UsuarioId = usuarioId,
+            MontoApertura = decimal.Round(montoApertura, 2, MidpointRounding.AwayFromZero)
         };
     }
 
     public decimal CalcularEfectivoEsperado(IEnumerable<MovimientoCaja> movimientos)
     {
-        ArgumentNullException.ThrowIfNull(movimientos);
-
-        decimal ventasEfectivo = 0m;
-        decimal propinasEfectivo = 0m;
-        decimal ingresosManuales = 0m;
-        decimal egresosManuales = 0m;
-        decimal reembolsosEfectivo = 0m;
-
-        foreach (var mov in movimientos.Where(m => m.TurnoCajaId == Id))
-        {
-            switch (mov.Tipo)
-            {
-                case TipoMovimientoCaja.VentaEfectivo:
-                    ventasEfectivo += mov.Monto;
-                    break;
-                case TipoMovimientoCaja.PropinaEfectivo:
-                    propinasEfectivo += mov.Monto;
-                    break;
-                case TipoMovimientoCaja.IngresoManual:
-                    ingresosManuales += mov.Monto;
-                    break;
-                case TipoMovimientoCaja.EgresoManual:
-                    egresosManuales += mov.Monto;
-                    break;
-                case TipoMovimientoCaja.ReembolsoEfectivo:
-                    reembolsosEfectivo += mov.Monto;
-                    break;
-                case TipoMovimientoCaja.ReembolsoDigital:
-                    break;
-            }
-        }
-
-        return MontoApertura
-               + ventasEfectivo
-               + propinasEfectivo
-               + ingresosManuales
-               - egresosManuales
-               - reembolsosEfectivo;
+        var delTurno = movimientos.Where(m => m.TurnoCajaId == Id);
+        decimal ingresos = delTurno.Where(m => m.Tipo is TipoMovimientoCaja.VentaEfectivo or TipoMovimientoCaja.IngresoManual).Sum(m => m.Monto);
+        decimal egresos = delTurno.Where(m => m.Tipo is TipoMovimientoCaja.EgresoManual or TipoMovimientoCaja.ReembolsoEfectivo).Sum(m => m.Monto);
+        return MontoApertura + ingresos - egresos;
     }
 
-    public void Cerrar(
-        int usuarioCierreId,
-        decimal efectivoContado,
-        IEnumerable<MovimientoCaja> movimientos,
-        string? observacion = null)
+    public void Cerrar(decimal efectivoContado)
     {
-        if (Estado == EstadoTurno.Cerrado)
-            throw new InvalidOperationException("El turno ya está cerrado; un cierre es irrepetible e inmutable.");
-
-        if (usuarioCierreId <= 0)
-            throw new ArgumentException("Se requiere un usuario responsable para cerrar el turno.", nameof(usuarioCierreId));
-
-        if (efectivoContado < 0m || decimal.Round(efectivoContado, 2, MidpointRounding.AwayFromZero) != efectivoContado)
-            throw new ArgumentException("El efectivo contado debe ser no negativo con máximo dos decimales.", nameof(efectivoContado));
-
-        decimal esperado = CalcularEfectivoEsperado(movimientos);
-
+        if (Estado == EstadoTurno.Cerrado || efectivoContado < 0m) throw new InvalidOperationException("No se puede cerrar el turno.");
         Estado = EstadoTurno.Cerrado;
-        UsuarioCierreId = usuarioCierreId;
-        FechaCierreUtc = DateTime.UtcNow;
-        EfectivoEsperadoCierre = esperado;
-        EfectivoContadoCierre = efectivoContado;
-        DiferenciaCierre = efectivoContado - esperado;
-        ObservacionCierre = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
+        EfectivoContado = decimal.Round(efectivoContado, 2, MidpointRounding.AwayFromZero);
     }
 }
