@@ -16,9 +16,13 @@ public class Usuario
     public static Usuario Crear(string nombreUsuario, string password, RolUsuario rol)
     {
         if (string.IsNullOrWhiteSpace(nombreUsuario))
-            throw new ArgumentException("El usuario es obligatorio.", nameof(nombreUsuario));
+            throw new ArgumentException("El nombre de usuario es obligatorio.", nameof(nombreUsuario));
 
-        var u = new Usuario { NombreUsuario = nombreUsuario.Trim().ToLowerInvariant(), Rol = rol };
+        var u = new Usuario
+        {
+            NombreUsuario = nombreUsuario.Trim().ToLowerInvariant(),
+            Rol = rol
+        };
         u.CambiarPassword(password);
         return u;
     }
@@ -26,7 +30,7 @@ public class Usuario
     public void CambiarPassword(string password)
     {
         if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
-            throw new ArgumentException("Mínimo 6 caracteres.", nameof(password));
+            throw new ArgumentException("La contraseña debe tener al menos 6 caracteres.", nameof(password));
 
         byte[] sal = RandomNumberGenerator.GetBytes(16);
         byte[] hash = Rfc2898DeriveBytes.Pbkdf2(password, sal, 100_000, HashAlgorithmName.SHA256, 32);

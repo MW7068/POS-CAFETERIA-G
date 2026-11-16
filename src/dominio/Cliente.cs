@@ -20,10 +20,11 @@ public class Cliente
 
         string doc = numeroDocumento?.Trim() ?? string.Empty;
         bool digitos = doc.All(char.IsDigit);
-        if ((tipo == TipoDocumentoCliente.Dni && (!digitos || doc.Length != 8)) ||
-            (tipo == TipoDocumentoCliente.Ruc && (!digitos || doc.Length != 11)) ||
-            tipo == TipoDocumentoCliente.Ninguno)
-            throw new ArgumentException("Documento inválido (DNI 8 / RUC 11).", nameof(numeroDocumento));
+
+        if (tipo == TipoDocumentoCliente.Dni && (!digitos || doc.Length != 8))
+            throw new ArgumentException("El DNI debe tener 8 dígitos.", nameof(numeroDocumento));
+        if (tipo == TipoDocumentoCliente.Ruc && (!digitos || doc.Length != 11))
+            throw new ArgumentException("El RUC debe tener 11 dígitos.", nameof(numeroDocumento));
 
         Nombre = nombre.Trim();
         TipoDocumento = tipo;

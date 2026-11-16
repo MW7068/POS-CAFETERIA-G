@@ -13,7 +13,8 @@ public class Categoria
     public Categoria(string nombre)
     {
         if (string.IsNullOrWhiteSpace(nombre))
-            throw new ArgumentException("El nombre es obligatorio.", nameof(nombre));
+            throw new ArgumentException("El nombre de la categoría es obligatorio.", nameof(nombre));
+
         Nombre = nombre.Trim();
     }
 }
