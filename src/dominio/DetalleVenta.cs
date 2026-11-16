@@ -28,12 +28,12 @@ public class DetalleVenta
         Observacion = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
     }
 
-    public void ActualizarCantidad(int cantidad)
+    internal void ActualizarCantidad(int cantidad)
     {
         if (cantidad <= 0) throw new ArgumentException("Cantidad inválida.", nameof(cantidad));
         Cantidad = cantidad;
     }
 
-    public void ActualizarObservacion(string? observacion)
+    internal void ActualizarObservacion(string? observacion)
         => Observacion = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
 }

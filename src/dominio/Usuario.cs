@@ -42,12 +42,21 @@ public class Usuario
         if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(Password)) return false;
 
         var partes = Password.Split(':');
-        if (partes.Length != 2) return Password == password;
+        if (partes.Length != 2) return false;
 
-        byte[] sal = Convert.FromBase64String(partes[0]);
-        byte[] esperado = Convert.FromBase64String(partes[1]);
-        byte[] actual = Rfc2898DeriveBytes.Pbkdf2(password, sal, 100_000, HashAlgorithmName.SHA256, esperado.Length);
-        return CryptographicOperations.FixedTimeEquals(actual, esperado);
+        try
+        {
+            byte[] sal = Convert.FromBase64String(partes[0]);
+            byte[] esperado = Convert.FromBase64String(partes[1]);
+            if (sal.Length == 0 || esperado.Length == 0) return false;
+
+            byte[] actual = Rfc2898DeriveBytes.Pbkdf2(password, sal, 100_000, HashAlgorithmName.SHA256, esperado.Length);
+            return CryptographicOperations.FixedTimeEquals(actual, esperado);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 
     public void Desactivar() => Activo = false;

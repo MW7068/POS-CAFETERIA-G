@@ -61,6 +61,8 @@ public class Venta
     public void AgregarDetalle(int productoId, int cantidad, decimal precioUnitario, string? nombreProducto = null, string? observacion = null)
     {
         if (Estado != EstadoVenta.Borrador) throw new InvalidOperationException("Venta cerrada.");
+        if (cantidad <= 0) throw new ArgumentException("La cantidad a agregar debe ser mayor que cero.", nameof(cantidad));
+        if (precioUnitario < 0m) throw new ArgumentException("El precio unitario no puede ser negativo.", nameof(precioUnitario));
 
         string? obs = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
         var item = _detalles.FirstOrDefault(d => d.ProductoId == productoId && string.Equals(d.Observacion, obs, StringComparison.OrdinalIgnoreCase));
@@ -69,6 +71,24 @@ public class Venta
             item.ActualizarCantidad(item.Cantidad + cantidad);
         else
             _detalles.Add(new DetalleVenta(productoId, string.IsNullOrWhiteSpace(nombreProducto) ? $"Producto #{productoId}" : nombreProducto, cantidad, precioUnitario, obs));
+    }
+
+    public void ActualizarCantidadDetalle(int productoId, int nuevaCantidad, string? observacion = null)
+    {
+        if (Estado != EstadoVenta.Borrador) throw new InvalidOperationException("Venta cerrada.");
+        string? obs = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
+        var item = _detalles.FirstOrDefault(d => d.ProductoId == productoId && string.Equals(d.Observacion, obs, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException("Detalle no encontrado en el borrador.");
+        item.ActualizarCantidad(nuevaCantidad);
+    }
+
+    public void ActualizarObservacionDetalle(int productoId, string? observacionActual, string? nuevaObservacion)
+    {
+        if (Estado != EstadoVenta.Borrador) throw new InvalidOperationException("Venta cerrada.");
+        string? obs = string.IsNullOrWhiteSpace(observacionActual) ? null : observacionActual.Trim();
+        var item = _detalles.FirstOrDefault(d => d.ProductoId == productoId && string.Equals(d.Observacion, obs, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException("Detalle no encontrado en el borrador.");
+        item.ActualizarObservacion(nuevaObservacion);
     }
 
     public void QuitarDetalle(int productoId, string? observacion = null)
