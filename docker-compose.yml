@@ -1,0 +1,9 @@
+﻿services:
+  pruebas:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles:
+      - pruebas
+    environment:
+      RUTA_DB: ":memory:"

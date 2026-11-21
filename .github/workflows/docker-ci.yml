@@ -1,0 +1,24 @@
+﻿name: Docker CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  pruebas-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build pruebas service
+        run: docker compose --profile pruebas build
+
+      - name: Run unit tests in container
+        run: docker compose --profile pruebas run --rm pruebas
+
+      - name: Tear down compose services
+        if: always()
+        run: docker compose down
