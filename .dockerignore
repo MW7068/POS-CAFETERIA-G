@@ -1,13 +1,32 @@
 ﻿**/.git
+**/.gitignore
+**/.github
 **/.vs
 **/.vscode
 **/bin
 **/obj
 **/TestResults
-*.user
-*.suo
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
+
+# Bases de datos y archivos auxiliares SQLite (recursivo)
+**/*.db
+**/*.db-*
+**/*.sqlite
+**/*.sqlite3
+**/*.sqlite-*
+**/*.sdf
+
+# Variables de entorno y configuración local
+**/.env
+**/.env.*
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/*.user
+**/*.suo
+
+# Carpetas de datos locales
+**/data/
+**/datos/
+**/db/
+**/database/
+**/AppData/
+**/LocalAppData/

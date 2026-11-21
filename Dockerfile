@@ -12,6 +12,6 @@ COPY src/dominio/ src/dominio/
 COPY src/infraestructura/ src/infraestructura/
 COPY tests/PosCafeteria.Tests/ tests/PosCafeteria.Tests/
 
-RUN dotnet test tests/PosCafeteria.Tests/PosCafeteria.Tests.csproj -c Release --no-restore
+RUN dotnet test tests/PosCafeteria.Tests/PosCafeteria.Tests.csproj -c Release --no-restore -- RunConfiguration.TreatNoTestsAsError=true
 
-CMD ["dotnet", "test", "tests/PosCafeteria.Tests/PosCafeteria.Tests.csproj", "-c", "Release", "--no-build"]
+CMD ["dotnet", "test", "tests/PosCafeteria.Tests/PosCafeteria.Tests.csproj", "-c", "Release", "--no-build", "--", "RunConfiguration.TreatNoTestsAsError=true"]

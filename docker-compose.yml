@@ -7,3 +7,4 @@
       - pruebas
     environment:
       RUTA_DB: ":memory:"
+    command: ["dotnet", "test", "tests/PosCafeteria.Tests/PosCafeteria.Tests.csproj", "-c", "Release", "--no-build", "--", "RunConfiguration.TreatNoTestsAsError=true"]
