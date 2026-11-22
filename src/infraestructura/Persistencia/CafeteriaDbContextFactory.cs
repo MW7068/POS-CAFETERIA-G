@@ -1,4 +1,3 @@
-using System.IO;
 using System.Linq;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -9,9 +8,10 @@ public class CafeteriaDbContextFactory
 {
     public CafeteriaDbContext CreateDbContext(string[] args)
     {
-        var ruta = Path.GetFullPath("cafeteria.desarrollo.db");
+        var rutaExplicita = args.FirstOrDefault(arg =>
+            !string.IsNullOrWhiteSpace(arg) && !arg.StartsWith("--"));
         var cargarDemo = args.Contains("--demo");
 
-        return ConexionSqlite.CrearContexto(ruta, cargarDemo);
+        return ConexionSqlite.CrearContexto(rutaExplicita, cargarDemo);
     }
 }
