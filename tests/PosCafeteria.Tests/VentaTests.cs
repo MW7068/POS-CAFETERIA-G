@@ -81,9 +81,57 @@ public class VentaTests
     // --- Nuevas pruebas solicitadas en revisión del PR #23 ---
 
     [Fact]
+    public void EmitirComprobante_PagoYVentaConIdentificadoresEnCero_LanzaExcepcion()
+    {
+        var venta = new Venta(usuarioId: 1); // venta.Id == 0
+        venta.AgregarDetalle(productoId: 1, cantidad: 1, precioUnitario: 10.00m, nombreProducto: "Café");
+        venta.Confirmar("OP-000", cajaId: 1);
+
+        var pagoConIdCero = Pago.RegistrarEfectivo(ventaId: 0, cajaId: 1, usuarioId: 1, consumo: 10.00m, propina: 0m, recibido: 10.00m);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            Comprobante.Emitir(venta, pagoConIdCero, "INT-001", 1));
+    }
+    private static void AsignarIdVenta(Venta venta, int id)
+    {
+    typeof(Venta).GetProperty(nameof(Venta.Id))!.SetValue(venta, id);
+    }
+
+    [Fact]
+    public void EmitirComprobante_SinCobroAutorizadoConVentaTotalMayorACero_LanzaExcepcion()
+    {
+        var venta = new Venta(usuarioId: 1);
+        AsignarIdVenta(venta, 10);
+        venta.AgregarDetalle(productoId: 1, cantidad: 1, precioUnitario: 12.00m, nombreProducto: "Latte");
+        venta.Confirmar("OP-010", cajaId: 1);
+
+        var pagoSinCobro = Pago.RegistrarSinCobro(ventaId: venta.Id, cajaId: 1, usuarioId: 1, RolUsuario.Administrador);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            Comprobante.Emitir(venta, pagoSinCobro, "INT-001", 10));
+    }
+
+    [Fact]
+    public void EmitirComprobante_SinCobroAutorizadoConVentaTotalCero_EmiteCorrectamente()
+    {
+        var venta = new Venta(usuarioId: 1);
+        AsignarIdVenta(venta, 11);
+        venta.AgregarDetalle(productoId: 1, cantidad: 1, precioUnitario: 10.00m, nombreProducto: "Cortesía");
+        venta.AplicarDescuento(100m);
+        venta.Confirmar("OP-011", cajaId: 1);
+
+        var pagoSinCobro = Pago.RegistrarSinCobro(ventaId: venta.Id, cajaId: 1, usuarioId: 1, RolUsuario.Administrador);
+        var comprobante = Comprobante.Emitir(venta, pagoSinCobro, "INT-001", 11);
+
+        Assert.Equal(venta.Id, comprobante.VentaId);
+        Assert.Equal(0m, comprobante.Total);
+    }
+
+    [Fact]
     public void EmitirComprobante_PagoDeOtraVenta_LanzaExcepcion()
     {
         var venta = new Venta(usuarioId: 1);
+        AsignarIdVenta(venta, 1);
         venta.AgregarDetalle(productoId: 1, cantidad: 1, precioUnitario: 10.00m, nombreProducto: "Café");
         venta.Confirmar("OP-001", cajaId: 1);
 
@@ -97,6 +145,7 @@ public class VentaTests
     public void EmitirComprobante_ImportePagoNoCoincideConVenta_LanzaExcepcion()
     {
         var venta = new Venta(usuarioId: 1);
+        AsignarIdVenta(venta, 1);
         venta.AgregarDetalle(productoId: 1, cantidad: 2, precioUnitario: 7.50m, nombreProducto: "Capuchino");
         venta.Confirmar("OP-002", cajaId: 1);
 
@@ -110,6 +159,7 @@ public class VentaTests
     public void EmitirComprobante_PagoDeMismaVentaEImportesCoherentes_EmiteCorrectamente()
     {
         var venta = new Venta(usuarioId: 1);
+        AsignarIdVenta(venta, 1);
         venta.AgregarDetalle(productoId: 1, cantidad: 2, precioUnitario: 7.50m, nombreProducto: "Capuchino");
         venta.Confirmar("OP-003", cajaId: 1);
 
