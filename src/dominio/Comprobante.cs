@@ -20,8 +20,17 @@ public class Comprobante
 
     public static Comprobante Emitir(Venta venta, Pago pago, string serie, int numero, string? clienteNombre = null)
     {
+        ArgumentNullException.ThrowIfNull(venta);
+        ArgumentNullException.ThrowIfNull(pago);
+
         if (venta.Estado != EstadoVenta.Confirmada)
             throw new InvalidOperationException("Solo se emite comprobante para ventas confirmadas.");
+        if (pago.VentaId != venta.Id)
+            throw new InvalidOperationException("El pago no corresponde a la venta indicada.");
+        if (pago.MontoTotal != decimal.Round(pago.MontoConsumo + pago.MontoPropina, 2, MidpointRounding.AwayFromZero))
+            throw new InvalidOperationException("Los importes del pago son incoherentes.");
+        if (pago.Metodo != MetodoPago.SinCobroAutorizado && pago.MontoConsumo != venta.Total)
+            throw new InvalidOperationException("El importe del pago no coincide con el total de la venta.");
         if (string.IsNullOrWhiteSpace(serie) || numero <= 0)
             throw new ArgumentException("Serie o número de comprobante inválido.");
 

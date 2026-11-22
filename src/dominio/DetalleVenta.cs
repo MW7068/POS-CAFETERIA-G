@@ -18,13 +18,15 @@ public class DetalleVenta
 
     public DetalleVenta(int productoId, string nombreProducto, int cantidad, decimal precioUnitario, string? observacion = null)
     {
-        if (productoId <= 0 || cantidad <= 0 || precioUnitario < 0m || string.IsNullOrWhiteSpace(nombreProducto))
+        if (productoId <= 0 || cantidad <= 0 || precioUnitario <= 0m || string.IsNullOrWhiteSpace(nombreProducto))
             throw new ArgumentException("Detalle de venta inválido.");
+        if (decimal.Round(precioUnitario, 2, MidpointRounding.AwayFromZero) != precioUnitario)
+            throw new ArgumentException("El precio unitario no puede tener más de dos decimales.", nameof(precioUnitario));
 
         ProductoId = productoId;
         NombreProducto = nombreProducto.Trim();
         Cantidad = cantidad;
-        PrecioUnitario = decimal.Round(precioUnitario, 2, MidpointRounding.AwayFromZero);
+        PrecioUnitario = precioUnitario;
         Observacion = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
     }
 
