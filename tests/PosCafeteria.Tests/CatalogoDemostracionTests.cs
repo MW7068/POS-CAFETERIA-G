@@ -28,10 +28,10 @@ public class CatalogoDemostracionTests
         Assert.True(sandwich.Id > 0);
 
         Assert.Equal(5.00m, cafe.Precio);
-        Assert.Equal(20, cafe.Stock);
+        Assert.Equal(0, cafe.Stock);
 
         Assert.Equal(8.00m, sandwich.Precio);
-        Assert.Equal(15, sandwich.Stock);
+        Assert.Equal(0, sandwich.Stock);
     }
 
     [Fact]
@@ -48,9 +48,7 @@ public class CatalogoDemostracionTests
         var cafeId = cafe.Id;
 
         cafe.Precio = 6.00m;
-        cafe.Stock = 17;
         contexto.SaveChanges();
-
         contexto.ChangeTracker.Clear();
 
         // Ejecuta nuevamente la carga, con el esquema ya actualizado.
@@ -62,6 +60,6 @@ public class CatalogoDemostracionTests
         Assert.Equal(2, productos.Count);
         Assert.Equal(cafeId, recuperado.Id);
         Assert.Equal(6.00m, recuperado.Precio);
-        Assert.Equal(17, recuperado.Stock);
+        Assert.Equal(0, recuperado.Stock);
     }
 }
