@@ -1,3 +1,10 @@
+-- PROPUESTA HISTÓRICA MYSQL
+-- Este archivo no corresponde a la base SQLite vigente.
+-- Se conserva únicamente como referencia del diseño completo.
+-- Las tablas definitivas se implementarán mediante EF Core
+-- y migraciones SQLite.
+
+
 
 create database if not exists `apuqhawa_cafemamaoli` default character set utf8mb4 collate utf8mb4_unicode_ci;
 

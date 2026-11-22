@@ -14,24 +14,50 @@ public static class ConexionSqlite
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "CafeMamaOli", "datos", "pos.db");
 
-    internal static string ResolverRuta(string? rutaArchivo)
+internal static string ResolverRuta(string? rutaArchivo)
+{
+    return ResolverRutaEnCarpeta(
+        rutaArchivo,
+        Environment.GetEnvironmentVariable("RUTA_DB"),
+        Environment.GetFolderPath(
+            Environment.SpecialFolder.LocalApplicationData));
+}
+
+internal static string ResolverRutaEnCarpeta(
+    string? rutaArchivo,
+    string? rutaConfigurada,
+    string carpetaLocal)
+{
+    ArgumentException.ThrowIfNullOrWhiteSpace(carpetaLocal);
+
+    string? ruta = string.IsNullOrWhiteSpace(rutaArchivo)
+        ? rutaConfigurada
+        : rutaArchivo;
+
+    if (!string.IsNullOrWhiteSpace(ruta))
     {
-        string? ruta = string.IsNullOrWhiteSpace(rutaArchivo)
-            ? Environment.GetEnvironmentVariable("RUTA_DB")
-            : rutaArchivo;
-
-        if (!string.IsNullOrWhiteSpace(ruta))
-            return ruta == ":memory:" ? ruta : Path.GetFullPath(ruta);
-
-        string anterior = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "CafeMamaOli", "POS", "cafeteria.db");
-        if (!File.Exists(RutaPredeterminada) && File.Exists(anterior))
-            throw new InvalidOperationException(
-                "Se encontró una base en la ruta anterior. Indique esa ruta para respaldar sus datos.");
-
-        return RutaPredeterminada;
+        return ruta == ":memory:"
+            ? ruta
+            : Path.GetFullPath(ruta);
     }
+
+    string nueva = Path.Combine(
+        carpetaLocal, "CafeMamaOli", "datos", "pos.db");
+
+    string anterior = Path.Combine(
+        carpetaLocal, "CafeMamaOli", "POS", "cafeteria.db");
+
+    // No crear una base nueva ignorando los datos anteriores.
+    if (!File.Exists(nueva) && File.Exists(anterior))
+    {
+        throw new InvalidOperationException(
+            "Se encontró una base en la ruta anterior. " +
+            "Indique esa ruta para respaldar sus datos.");
+    }
+
+    return nueva;
+}
+
 
     public static CafeteriaDbContext CrearContexto(string? rutaArchivo = null, bool cargarDemo = false,
         int segundosEspera = SegundosEspera)

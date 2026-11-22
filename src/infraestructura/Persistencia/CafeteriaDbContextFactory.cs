@@ -1,8 +1,5 @@
-// hecho por alex   
-
 
 using System;
-using System.IO;
 using System.Linq;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -13,37 +10,30 @@ public class CafeteriaDbContextFactory
 {
     public CafeteriaDbContext CreateDbContext(string[] args)
     {
-        string? ruta = Environment.GetEnvironmentVariable("RUTA_DB");
+        ArgumentNullException.ThrowIfNull(args);
+
+        string? ruta = null;
 
         int indice = Array.IndexOf(args, "--database");
+
         if (indice >= 0)
         {
             if (indice + 1 >= args.Length ||
                 string.IsNullOrWhiteSpace(args[indice + 1]) ||
-                args[indice + 1].StartsWith("--", StringComparison.Ordinal))
+                args[indice + 1].StartsWith(
+                    "--", StringComparison.Ordinal))
             {
-                throw new ArgumentException("Indica la ruta después de --database.");
+                throw new ArgumentException(
+                    "Indica la ruta después de --database.");
             }
 
             ruta = args[indice + 1];
         }
 
-        if (string.IsNullOrWhiteSpace(ruta))
-        {
-            ruta = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "CafeMamaOli",
-                "datos",
-                "pos.db");
-        }
-
-        if (ruta != ":memory:")
-        {
-            ruta = Path.GetFullPath(ruta);
-            Directory.CreateDirectory(Path.GetDirectoryName(ruta)!);
-        }
-
         bool cargarDemo = args.Contains("--demo");
+
+        // ConexionSqlite resuelve RUTA_DB,
+        // la ubicación anterior y la predeterminada.
         return ConexionSqlite.CrearContexto(ruta, cargarDemo);
     }
 }
