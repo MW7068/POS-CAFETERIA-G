@@ -17,6 +17,187 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.14");
 
+            modelBuilder.Entity("PosCafeteria.Dominio.Caja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("Diferencia")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaAperturaUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaCierreUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("MontoContado")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("MontoInicial")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Observacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalEgresosEfectivo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalEsperado")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalIngresosEfectivo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Cajas", (string)null);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.CajaMovimiento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CajaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MetodoPago")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Observacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Origen")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Referencia")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("VentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CajaId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("VentaId");
+
+                    b.ToTable("CajaMovimientos", (string)null);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Categoria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activa")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categorias", (string)null);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Cliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NumeroDocumento")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Telefono")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TipoDocumento")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TipoDocumento", "NumeroDocumento")
+                        .IsUnique()
+                        .HasFilter("\"NumeroDocumento\" <> ''");
+
+                    b.ToTable("Clientes", (string)null);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Comprobante", b =>
+                {
+                    b.Property<int>("Idcomprobante")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ClienteNombre")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaEmisionUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Numero")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Serie")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("VentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Idcomprobante");
+
+                    b.HasIndex("VentaId")
+                        .IsUnique();
+
+                    b.HasIndex("Serie", "Numero")
+                        .IsUnique();
+
+                    b.ToTable("Comprobantes", (string)null);
+                });
+
             modelBuilder.Entity("PosCafeteria.Dominio.DetalleVenta", b =>
                 {
                     b.Property<int>("Id")
@@ -25,6 +206,13 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
 
                     b.Property<int>("Cantidad")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("NombreProducto")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Observacion")
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("PrecioUnitario")
                         .HasColumnType("TEXT");
@@ -39,16 +227,134 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
 
                     b.HasIndex("ProductoId");
 
-                    b.HasIndex("VentaId", "ProductoId")
-                        .IsUnique();
+                    b.HasIndex("VentaId", "ProductoId");
 
                     b.ToTable("DetallesVenta", (string)null);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.MovimientoStock", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("VentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("VentaId");
+
+                    b.ToTable("MovimientosStock", (string)null);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Negocio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NombreNegocio")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Ruc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TasaImpuesto")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Negocios", (string)null);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Pago", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CajaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ConfirmacionManualDigital")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaPagoUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Metodo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("MontoConsumo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("MontoPropina")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("MontoRecibido")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("MontoTotal")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReferenciaOperacionDigital")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("VentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CajaId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("VentaId")
+                        .IsUnique();
+
+                    b.ToTable("Pagos", (string)null);
                 });
 
             modelBuilder.Entity("PosCafeteria.Dominio.Producto", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<int?>("CategoriaId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Nombre")
@@ -61,9 +367,44 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
                     b.Property<int>("Stock")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("StockMinimo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
+
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoriaId");
+
                     b.ToTable("Productos", (string)null);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NombreUsuario")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Rol")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NombreUsuario")
+                        .IsUnique();
+
+                    b.ToTable("Usuarios", (string)null);
                 });
 
             modelBuilder.Entity("PosCafeteria.Dominio.Venta", b =>
@@ -72,12 +413,83 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("CajaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ClienteId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Descuento")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("IdentificadorOperacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Modalidad")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("NumeroMesa")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("CajaId");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("IdentificadorOperacion")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId");
+
                     b.ToTable("Ventas", (string)null);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Caja", b =>
+                {
+                    b.HasOne("PosCafeteria.Dominio.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.CajaMovimiento", b =>
+                {
+                    b.HasOne("PosCafeteria.Dominio.Caja", null)
+                        .WithMany()
+                        .HasForeignKey("CajaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PosCafeteria.Dominio.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PosCafeteria.Dominio.Venta", null)
+                        .WithMany()
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Comprobante", b =>
+                {
+                    b.HasOne("PosCafeteria.Dominio.Venta", null)
+                        .WithMany()
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PosCafeteria.Dominio.DetalleVenta", b =>
@@ -92,6 +504,74 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
                         .WithMany("Detalles")
                         .HasForeignKey("VentaId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.MovimientoStock", b =>
+                {
+                    b.HasOne("PosCafeteria.Dominio.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PosCafeteria.Dominio.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PosCafeteria.Dominio.Venta", null)
+                        .WithMany()
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Pago", b =>
+                {
+                    b.HasOne("PosCafeteria.Dominio.Caja", null)
+                        .WithMany()
+                        .HasForeignKey("CajaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PosCafeteria.Dominio.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PosCafeteria.Dominio.Venta", null)
+                        .WithMany()
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Producto", b =>
+                {
+                    b.HasOne("PosCafeteria.Dominio.Categoria", null)
+                        .WithMany()
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("PosCafeteria.Dominio.Venta", b =>
+                {
+                    b.HasOne("PosCafeteria.Dominio.Caja", null)
+                        .WithMany()
+                        .HasForeignKey("CajaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PosCafeteria.Dominio.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PosCafeteria.Dominio.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
