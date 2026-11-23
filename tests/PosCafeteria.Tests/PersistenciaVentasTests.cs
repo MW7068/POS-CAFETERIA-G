@@ -200,8 +200,75 @@ public class PersistenciaVentasTests : IDisposable
         Assert.Single(lectura.Productos);
     }
 
+
+    [Fact]
+    public void Transaccion_SiFallaSegundaVenta_ReviertePrimeraVenta()
+    {
+        int productoId;
+
+        // 1. Preparamos un producto que sí debe conservarse.
+        using (var preparacion = CrearContexto())
+        {
+            var producto = new Producto
+            {
+                Nombre = "Cafe",
+                Precio = 5.00m,
+                Stock = 10
+            };
+
+            preparacion.Productos.Add(producto);
+            preparacion.SaveChanges();
+            productoId = producto.Id;
+        }
+
+        // 2. Iniciamos una transacción SQLite real.
+        using (var contexto = CrearContexto())
+        {
+            using var transaccion = contexto.Database.BeginTransaction();
+
+            // Primera venta: se guarda correctamente.
+            var primeraVenta = new Venta();
+            primeraVenta.AgregarProducto(productoId, 2, 5.00m);
+
+            var repositorio = new RepositorioVentas(contexto);
+            repositorio.Guardar(primeraVenta);
+
+            Assert.True(primeraVenta.Id > 0);
+            Assert.Single(contexto.Ventas);
+
+            // Segunda venta: referencia un producto inexistente.
+            var segundaVenta = new Venta();
+            segundaVenta.AgregarProducto(999999, 1, 3.00m);
+
+            Assert.Throws<DbUpdateException>(
+                () => repositorio.Guardar(segundaVenta));
+
+            // 3. Revertimos toda la operación.
+            transaccion.Rollback();
+        }
+
+        // 4. Comprobamos el resultado desde otro DbContext.
+        using (var lectura = CrearContexto())
+        {
+            Assert.Empty(lectura.Ventas);
+            Assert.Empty(lectura.DetallesVenta);
+
+            // Los datos anteriores a la transacción permanecen.
+            var producto = Assert.Single(lectura.Productos);
+            Assert.Equal(productoId, producto.Id);
+            Assert.Equal(10, producto.Stock);
+        }
+    }
+
+
+
+
     public void Dispose()
     {
         _conexion.Dispose();
     }
+
+
+
+
 }
