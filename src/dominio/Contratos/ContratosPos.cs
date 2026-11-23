@@ -36,15 +36,64 @@ public sealed record ResultadoOperacion<T>(bool Exitoso, T? Valor = default, Err
 }
 
 // ============================================================================
-// 2. AUTORIZACIÓN ADMINISTRATIVA VERIFICABLE (No basta enviar AdminUsuarioId)
+// 2. AUTENTICACIÓN Y REAUTENTICACIÓN ADMINISTRATIVA SEPARADA DE NEGOCIO
 // ============================================================================
 /// <summary>
-/// Credenciales explícitas requeridas para operaciones sensibles (descuentos fuera de límite,
-/// venta sin cobro, anulaciones o respaldos). El servicio de backend debe autenticar
-/// UsuarioAdmin + ClaveAdmin contra el hash PBKDF2 persistido, verificar que esté activo
-/// y confirmar que posea rol Administrador; recibir solo un ID no autoriza la operación.
+/// Credenciales de inicio de sesión local. Se modela como clase (no record) y enmascara
+/// la contraseña en ToString() para evitar su exposición en trazas o registros.
 /// </summary>
-public sealed record AutorizacionAdminRequest(string UsuarioAdmin, string ClaveAdmin, string Motivo);
+public sealed class CredencialesIngreso
+{
+    public string NombreUsuario { get; }
+    public string Clave { get; }
+
+    public CredencialesIngreso(string nombreUsuario, string clave)
+    {
+        NombreUsuario = nombreUsuario;
+        Clave = clave;
+    }
+
+    public override string ToString() => $"CredencialesIngreso(Usuario={NombreUsuario}, Clave=***)";
+}
+
+/// <summary>
+/// Credenciales explícitas para reautenticación administrativa previa a operaciones sensibles.
+/// Se modela como clase (no record) para que ClaveAdmin nunca viaje ni se imprima dentro de
+/// las solicitudes de negocio.
+/// </summary>
+public sealed class CredencialesReautenticacion
+{
+    public string UsuarioAdmin { get; }
+    public string ClaveAdmin { get; }
+    public string Motivo { get; }
+
+    public CredencialesReautenticacion(string usuarioAdmin, string claveAdmin, string motivo)
+    {
+        UsuarioAdmin = usuarioAdmin;
+        ClaveAdmin = claveAdmin;
+        Motivo = motivo;
+    }
+
+    public override string ToString() => $"CredencialesReautenticacion(UsuarioAdmin={UsuarioAdmin}, ClaveAdmin=***)";
+}
+
+public sealed record SesionUsuarioDto(
+    Guid SesionId,
+    int UsuarioId,
+    string NombreUsuario,
+    string Rol,
+    DateTime IniciadaUtc);
+
+/// <summary>
+/// Constancia emitida tras validar CredencialesReautenticacion contra el hash PBKDF2 persistido,
+/// verificar usuario activo y confirmar rol Administrador. No contiene contraseñas.
+/// </summary>
+public sealed record AutorizacionAdminEmitida(
+    Guid AutorizacionId,
+    int AdminUsuarioId,
+    string AdminNombreUsuario,
+    string Motivo,
+    DateTime ExpiraUtc);
 
 // ============================================================================
 // 3. DTOs DE ENTRADA Y SALIDA PARA LOS CONTRATOS MÍNIMOS (Sección 7)
@@ -86,6 +135,10 @@ public sealed record BorradorDto(
     IReadOnlyList<LineaBorradorDto> Lineas,
     DateTime FechaActualizacionUtc);
 
+/// <summary>
+/// Datos del cobro. Todo descuento positivo (DescuentoPorcentaje &gt; 0) y toda operación
+/// SinCobroAutorizado requieren AutorizacionAdminEmitida emitida por un Administrador activo.
+/// </summary>
 public sealed record DatosCobroRequest(
     string MetodoPago,
     decimal DescuentoPorcentaje,
@@ -93,13 +146,17 @@ public sealed record DatosCobroRequest(
     decimal MontoRecibido,
     bool ConfirmacionDigitalManual);
 
+/// <summary>
+/// Solicitud de confirmación de venta. Requiere AutorizacionAdminEmitida siempre que
+/// Cobro.DescuentoPorcentaje sea mayor que cero (&gt; 0) o cuando el método sea SinCobroAutorizado.
+/// </summary>
 public sealed record ConfirmarVentaRequest(
     Guid IdentificadorOperacion,
     int BorradorId,
     int UsuarioId,
     int TurnoId,
     DatosCobroRequest Cobro,
-    AutorizacionAdminRequest? Autorizacion);
+    AutorizacionAdminEmitida? Autorizacion);
 
 public sealed record VentaConfirmadaDto(
     int VentaId,
@@ -112,7 +169,17 @@ public sealed record VentaConfirmadaDto(
     decimal Vuelto);
 
 // --- Inventario (PBI-02) ---
-public sealed record MovimientoStockRequest(int ProductoId, string TipoMovimiento, int Cantidad, string Motivo, int AdminUsuarioId);
+/// <summary>
+/// Solicitud de movimiento manual de inventario. El servicio de backend verifica la sesión local
+/// vigente del usuario autenticado (activo y con rol Administrador), no basta con enviar AdminUsuarioId.
+/// </summary>
+public sealed record MovimientoStockRequest(
+    int ProductoId,
+    string TipoMovimiento,
+    int Cantidad,
+    string Motivo,
+    int AdminUsuarioId,
+    Guid? SesionLocalId = null);
 
 // --- Clientes (PBI-06) ---
 public sealed record GestionarClienteRequest(int? ClienteId, string TipoDocumento, string NumeroDocumento, string Nombre, string? Telefono, string? Direccion, string? Email);
@@ -128,7 +195,7 @@ public sealed record AnularVentaRequest(
     Guid IdentificadorOperacion,
     int VentaId,
     int TurnoActualId,
-    AutorizacionAdminRequest Autorizacion,
+    AutorizacionAdminEmitida Autorizacion,
     bool ReembolsoExternoVerificado);
 
 // --- Comprobantes (PBI-05) ---
@@ -136,9 +203,10 @@ public sealed record ComprobanteDto(int ComprobanteId, string Serie, int Numero,
 
 // --- Reportes (PBI-04) ---
 /// <summary>
-/// Cobertura Issue #4: cubre totales financieros (bruto, anulaciones/reembolsos, neto, propinas),
+/// Cobertura Issue #4: cubre totales financieros agregados (bruto, anulaciones/reembolsos, neto, propinas),
 /// desglose por método de pago y ranking de productos más vendidos en el rango local convertido a UTC.
-/// Pendiente Issue #4: exportación a archivo (CSV/PDF) y comparativa interanual/mensual.
+/// Pendiente Issue #4: listado/detalle de filas de ventas, historial de cierres de caja,
+/// exportación a archivo (CSV/PDF) y comparativa interanual/mensual.
 /// </summary>
 public sealed record FiltroReporteRequest(DateTime FechaInicioLocal, DateTime FechaFinLocal, int? TurnoId, int? ClienteId, string? MetodoPago);
 public sealed record ResumenMetodoPagoDto(string MetodoPago, int CantidadOperaciones, decimal TotalRecaudado);
@@ -156,8 +224,14 @@ public sealed record ReporteNegocioDto(
 public sealed record ResultadoRespaldoDto(string RutaArchivo, string VersionEsquema, DateTime FechaUtc);
 
 // ============================================================================
-// 4. INTERFACES DE CONTRATO (14 métodos en 8 interfaces que cubren los 13 contratos mínimos)
+// 4. INTERFACES DE CONTRATO (16 métodos en 9 interfaces que cubren los contratos mínimos)
 // ============================================================================
+public interface IAutenticacionServicio
+{
+    Task<ResultadoOperacion<SesionUsuarioDto>> IniciarSesionAsync(CredencialesIngreso credenciales);
+    Task<ResultadoOperacion<AutorizacionAdminEmitida>> ReautenticarAdminAsync(CredencialesReautenticacion credenciales);
+}
+
 public interface ICatalogoServicio
 {
     Task<ResultadoOperacion<IReadOnlyList<ProductoCatalogoDto>>> ConsultarCatalogoAsync(FiltroCatalogoRequest filtro);
@@ -172,6 +246,10 @@ public interface IVentaServicio
 
 public interface IInventarioServicio
 {
+    /// <summary>
+    /// Registra una entrada o salida manual de stock validando la sesión local activa
+    /// y el rol Administrador del usuario autenticado (no basta el ID recibido).
+    /// </summary>
     Task<ResultadoOperacion> RegistrarMovimientoStockAsync(MovimientoStockRequest request);
 }
 
@@ -195,11 +273,15 @@ public interface IComprobanteServicio
 
 public interface IReporteServicio
 {
+    /// <summary>
+    /// Consulta indicadores agregados del negocio. Las filas detalladas de ventas y el
+    /// historial de cierres de caja quedan explícitamente pendientes para la siguiente entrega de Issue #4.
+    /// </summary>
     Task<ResultadoOperacion<ReporteNegocioDto>> ConsultarReporteAsync(FiltroReporteRequest filtro);
 }
 
 public interface IRespaldoServicio
 {
-    Task<ResultadoOperacion<ResultadoRespaldoDto>> CrearRespaldoAsync(string rutaDestino, AutorizacionAdminRequest autorizacion);
-    Task<ResultadoOperacion> RestaurarRespaldoAsync(string rutaArchivoCandidato, AutorizacionAdminRequest autorizacion);
+    Task<ResultadoOperacion<ResultadoRespaldoDto>> CrearRespaldoAsync(string rutaDestino, AutorizacionAdminEmitida autorizacion);
+    Task<ResultadoOperacion> RestaurarRespaldoAsync(string rutaArchivoCandidato, AutorizacionAdminEmitida autorizacion);
 }
