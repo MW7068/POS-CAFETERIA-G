@@ -4,9 +4,19 @@ namespace PosCafeteria.Dominio;
 
 public class Producto
 {
+    private decimal _precio;
+
     public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
-    public decimal Precio { get; set; }
+    public decimal Precio
+    {
+        get => _precio;
+        set
+        {
+            ValidarPrecio(value);
+            _precio = value;
+        }
+    }
     public int Stock { get; set; }
     public int StockMinimo { get; set; }
     public int? CategoriaId { get; set; }
@@ -20,14 +30,24 @@ public class Producto
     {
         if (string.IsNullOrWhiteSpace(nombre))
             throw new ArgumentException("El nombre del producto es obligatorio.", nameof(nombre));
-        if (precio < 0m || stock < 0 || stockMinimo < 0)
-            throw new ArgumentException("Precio, stock o stock mínimo inválido.");
+        if (stock < 0 || stockMinimo < 0)
+            throw new ArgumentException("Stock o stock mínimo inválido.");
+
+        ValidarPrecio(precio);
 
         Nombre = nombre.Trim();
-        Precio = decimal.Round(precio, 2, MidpointRounding.AwayFromZero);
+        _precio = precio;
         Stock = stock;
         StockMinimo = stockMinimo;
         CategoriaId = categoriaId;
+    }
+
+    private static void ValidarPrecio(decimal precio)
+    {
+        if (precio <= 0m)
+            throw new ArgumentException("El precio del producto debe ser mayor que cero.", nameof(precio));
+        if (decimal.Round(precio, 2, MidpointRounding.AwayFromZero) != precio)
+            throw new ArgumentException("El precio del producto no puede tener más de dos decimales.", nameof(precio));
     }
 
     public void EstablecerStock(int nuevoStock)

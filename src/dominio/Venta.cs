@@ -28,7 +28,8 @@ public class Venta
         get
         {
             decimal bruto = SubtotalBruto;
-            return decimal.Round(bruto - (bruto * (Descuento / 100m)), 2, MidpointRounding.AwayFromZero);
+            decimal descuentoMonetario = decimal.Round(bruto * (Descuento / 100m), 2, MidpointRounding.AwayFromZero);
+            return decimal.Round(bruto - descuentoMonetario, 2, MidpointRounding.AwayFromZero);
         }
     }
 
@@ -62,7 +63,9 @@ public class Venta
     {
         if (Estado != EstadoVenta.Borrador) throw new InvalidOperationException("Venta cerrada.");
         if (cantidad <= 0) throw new ArgumentException("La cantidad a agregar debe ser mayor que cero.", nameof(cantidad));
-        if (precioUnitario < 0m) throw new ArgumentException("El precio unitario no puede ser negativo.", nameof(precioUnitario));
+        if (precioUnitario <= 0m) throw new ArgumentException("El precio unitario debe ser mayor que cero.", nameof(precioUnitario));
+        if (decimal.Round(precioUnitario, 2, MidpointRounding.AwayFromZero) != precioUnitario)
+            throw new ArgumentException("El precio unitario no puede tener más de dos decimales.", nameof(precioUnitario));
 
         string? obs = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
         var item = _detalles.FirstOrDefault(d => d.ProductoId == productoId && string.Equals(d.Observacion, obs, StringComparison.OrdinalIgnoreCase));
