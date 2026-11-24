@@ -35,7 +35,7 @@ public class Pbi02InventarioQaTests : IDisposable
     [InlineData(-2)]
     public void DetalleVenta_CantidadNoPositiva_LanzaExcepcion(int cantidadInvalida)
     {
-        Assert.Throws<ArgumentException>(() => new DetalleVenta(1, cantidadInvalida, 5.00m));
+        Assert.Throws<ArgumentException>(() => new DetalleVenta(1, "Producto Prueba", cantidadInvalida, 5.00m));
     }
 
     [Theory]
@@ -43,7 +43,7 @@ public class Pbi02InventarioQaTests : IDisposable
     [InlineData(-1.50)]
     public void DetalleVenta_PrecioNoPositivo_LanzaExcepcion(decimal precioInvalido)
     {
-        Assert.Throws<ArgumentException>(() => new DetalleVenta(1, 2, precioInvalido));
+        Assert.Throws<ArgumentException>(() => new DetalleVenta(1, "Producto Prueba", 2, precioInvalido));
     }
 
     [Fact]
