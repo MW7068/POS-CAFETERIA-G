@@ -22,3 +22,9 @@ appsettings.Local.json
 # Temporary Office files
 ~$*
 *.tmp
+
+# Docker / CI artifacts
+**/TestResults/
+*.db
+*.db-shm
+*.db-wal
