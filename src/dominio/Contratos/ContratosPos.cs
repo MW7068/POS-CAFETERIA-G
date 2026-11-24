@@ -36,7 +36,7 @@ public sealed record ResultadoOperacion<T>(bool Exitoso, T? Valor = default, Err
 }
 
 // ============================================================================
-// 2. AUTENTICACIÓN Y REAUTENTICACIÓN ADMINISTRATIVA SEPARADA DE NEGOCIO
+// 2. AUTENTICACIÓN Y REAUTENTICACIÓN ADMINISTRATIVA VINCULADA A OPERACIÓN
 // ============================================================================
 /// <summary>
 /// Credenciales de inicio de sesión local. Se modela como clase (no record) y enmascara
@@ -57,24 +57,38 @@ public sealed class CredencialesIngreso
 }
 
 /// <summary>
-/// Credenciales explícitas para reautenticación administrativa previa a operaciones sensibles.
-/// Se modela como clase (no record) para que ClaveAdmin nunca viaje ni se imprima dentro de
-/// las solicitudes de negocio.
+/// Credenciales explícitas para reautenticación administrativa previa a una operación sensible concreta.
+/// Vincula la autorización desde su solicitud con el tipo de operación, su referencia específica
+/// (ej. BorradorId, VentaId o IdentificadorOperacion) y el importe o porcentaje autorizado,
+/// impidiendo que la clave viaje en las solicitudes de negocio o se imprima en ToString().
 /// </summary>
 public sealed class CredencialesReautenticacion
 {
     public string UsuarioAdmin { get; }
     public string ClaveAdmin { get; }
+    public string TipoOperacion { get; }
+    public string ReferenciaOperacion { get; }
+    public decimal? ImporteOValorAutorizado { get; }
     public string Motivo { get; }
 
-    public CredencialesReautenticacion(string usuarioAdmin, string claveAdmin, string motivo)
+    public CredencialesReautenticacion(
+        string usuarioAdmin,
+        string claveAdmin,
+        string tipoOperacion,
+        string referenciaOperacion,
+        decimal? importeOValorAutorizado,
+        string motivo)
     {
         UsuarioAdmin = usuarioAdmin;
         ClaveAdmin = claveAdmin;
+        TipoOperacion = tipoOperacion;
+        ReferenciaOperacion = referenciaOperacion;
+        ImporteOValorAutorizado = importeOValorAutorizado;
         Motivo = motivo;
     }
 
-    public override string ToString() => $"CredencialesReautenticacion(UsuarioAdmin={UsuarioAdmin}, ClaveAdmin=***)";
+    public override string ToString() =>
+        $"CredencialesReautenticacion(UsuarioAdmin={UsuarioAdmin}, TipoOperacion={TipoOperacion}, Referencia={ReferenciaOperacion}, ClaveAdmin=***)";
 }
 
 public sealed record SesionUsuarioDto(
@@ -85,14 +99,24 @@ public sealed record SesionUsuarioDto(
     DateTime IniciadaUtc);
 
 /// <summary>
-/// Constancia emitida tras validar CredencialesReautenticacion contra el hash PBKDF2 persistido,
-/// verificar usuario activo y confirmar rol Administrador. No contiene contraseñas.
+/// Constancia de autorización de un solo uso emitida tras validar CredencialesReautenticacion
+/// contra el hash PBKDF2 persistido, verificar usuario activo y confirmar rol Administrador.
+/// Reglas de vinculación y no reutilización:
+/// 1. Queda ligada exactamente a TipoOperacion, ReferenciaOperacion (ej. BorradorId/VentaId)
+///    e ImporteOValorAutorizado (porcentaje de descuento o monto total de la venta).
+/// 2. El servicio receptor debe rechazarla (ERR_NO_AUTORIZADO) si no coincide la operación,
+///    si cambió el importe/descuento respecto al autorizado, si ya expiró (ExpiraUtc) o si su
+///    AutorizacionId ya fue consumida previamente en otra operación.
 /// </summary>
 public sealed record AutorizacionAdminEmitida(
     Guid AutorizacionId,
     int AdminUsuarioId,
     string AdminNombreUsuario,
+    string TipoOperacion,
+    string ReferenciaOperacion,
+    decimal? ImporteOValorAutorizado,
     string Motivo,
+    DateTime EmitidaUtc,
     DateTime ExpiraUtc);
 
 // ============================================================================
@@ -104,11 +128,8 @@ public sealed record FiltroCatalogoRequest(string? TextoBusqueda, int? Categoria
 public sealed record ProductoCatalogoDto(int Id, string Nombre, int CategoriaId, string CategoriaNombre, decimal PrecioFinal, int Stock, bool Activo, string? Icono);
 
 // --- Ventas y Borradores (PBI-01 / PBI-07) ---
-// Entrada al guardar borrador: solo recibe producto, cantidad y observaciones.
 public sealed record LineaBorradorRequest(int ProductoId, int Cantidad, string? Observaciones = null);
 
-// Salida de borrador: incluye snapshot de nombre, precio aplicado, importe y observaciones
-// para recuperar la venta sin recalcularla desde el catálogo.
 public sealed record LineaBorradorDto(
     int ProductoId,
     string NombreProducto,
@@ -137,7 +158,7 @@ public sealed record BorradorDto(
 
 /// <summary>
 /// Datos del cobro. Todo descuento positivo (DescuentoPorcentaje &gt; 0) y toda operación
-/// SinCobroAutorizado requieren AutorizacionAdminEmitida emitida por un Administrador activo.
+/// SinCobroAutorizado requieren AutorizacionAdminEmitida vinculada al borrador e importe/descuento.
 /// </summary>
 public sealed record DatosCobroRequest(
     string MetodoPago,
@@ -147,8 +168,9 @@ public sealed record DatosCobroRequest(
     bool ConfirmacionDigitalManual);
 
 /// <summary>
-/// Solicitud de confirmación de venta. Requiere AutorizacionAdminEmitida siempre que
-/// Cobro.DescuentoPorcentaje sea mayor que cero (&gt; 0) o cuando el método sea SinCobroAutorizado.
+/// Solicitud de confirmación de venta. Requiere AutorizacionAdminEmitida de un solo uso
+/// vinculada a BorradorId y al descuento/importe siempre que Cobro.DescuentoPorcentaje &gt; 0
+/// o cuando el método sea SinCobroAutorizado.
 /// </summary>
 public sealed record ConfirmarVentaRequest(
     Guid IdentificadorOperacion,
@@ -170,8 +192,10 @@ public sealed record VentaConfirmadaDto(
 
 // --- Inventario (PBI-02) ---
 /// <summary>
-/// Solicitud de movimiento manual de inventario. El servicio de backend verifica la sesión local
-/// vigente del usuario autenticado (activo y con rol Administrador), no basta con enviar AdminUsuarioId.
+/// Solicitud de movimiento manual de inventario. El servicio de backend debe validar que
+/// SesionLocalId corresponda a una sesión administrativa local activa y vigente (usuario activo
+/// con rol Administrador); si no existe una sesión administrativa válida, la operación se rechaza
+/// explícitamente con ERR_NO_AUTORIZADO o ERR_PERMISO_INSUFICIENTE.
 /// </summary>
 public sealed record MovimientoStockRequest(
     int ProductoId,
@@ -179,7 +203,7 @@ public sealed record MovimientoStockRequest(
     int Cantidad,
     string Motivo,
     int AdminUsuarioId,
-    Guid? SesionLocalId = null);
+    Guid SesionLocalId);
 
 // --- Clientes (PBI-06) ---
 public sealed record GestionarClienteRequest(int? ClienteId, string TipoDocumento, string NumeroDocumento, string Nombre, string? Telefono, string? Direccion, string? Email);
@@ -191,6 +215,10 @@ public sealed record RegistrarMovimientoCajaRequest(int TurnoId, int UsuarioId, 
 public sealed record CerrarTurnoRequest(int TurnoId, int UsuarioId, decimal EfectivoContado);
 public sealed record ResumenCierreDto(int TurnoId, decimal EfectivoEsperado, decimal EfectivoContado, decimal Diferencia, decimal TotalDigitalFueraGaveta, DateTime FechaCierreUtc);
 
+/// <summary>
+/// Solicitud de anulación de venta. Requiere AutorizacionAdminEmitida de un solo uso
+/// vinculada específicamente a VentaId y al importe de la venta anulada.
+/// </summary>
 public sealed record AnularVentaRequest(
     Guid IdentificadorOperacion,
     int VentaId,
@@ -229,6 +257,11 @@ public sealed record ResultadoRespaldoDto(string RutaArchivo, string VersionEsqu
 public interface IAutenticacionServicio
 {
     Task<ResultadoOperacion<SesionUsuarioDto>> IniciarSesionAsync(CredencialesIngreso credenciales);
+
+    /// <summary>
+    /// Valida las credenciales del administrador y emite una constancia de un solo uso
+    /// vinculada a TipoOperacion, ReferenciaOperacion e ImporteOValorAutorizado.
+    /// </summary>
     Task<ResultadoOperacion<AutorizacionAdminEmitida>> ReautenticarAdminAsync(CredencialesReautenticacion credenciales);
 }
 
@@ -247,8 +280,9 @@ public interface IVentaServicio
 public interface IInventarioServicio
 {
     /// <summary>
-    /// Registra una entrada o salida manual de stock validando la sesión local activa
-    /// y el rol Administrador del usuario autenticado (no basta el ID recibido).
+    /// Registra una entrada o salida manual de stock. Rechaza explícitamente la operación
+    /// (ERR_NO_AUTORIZADO / ERR_PERMISO_INSUFICIENTE) si no existe una sesión administrativa
+    /// local activa y vigente asociada a SesionLocalId.
     /// </summary>
     Task<ResultadoOperacion> RegistrarMovimientoStockAsync(MovimientoStockRequest request);
 }
