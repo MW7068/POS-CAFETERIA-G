@@ -422,6 +422,11 @@ namespace PosCafeteria.Infraestructura.Persistencia.Migraciones
                     b.Property<decimal>("Descuento")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("EsHistorica")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
                     b.Property<int>("Estado")
                         .HasColumnType("INTEGER");
 

@@ -238,7 +238,7 @@ public class PersistenciaVentasTests : IDisposable
             using var transaccion = contexto.Database.BeginTransaction();
 
             // Primera venta: se guarda correctamente.
-            var primeraVenta = new Venta();
+            var primeraVenta = new Venta(_usuarioId);
             primeraVenta.AgregarProducto(productoId, 2, 5.00m);
 
             var repositorio = new RepositorioVentas(contexto);
@@ -248,7 +248,7 @@ public class PersistenciaVentasTests : IDisposable
             Assert.Single(contexto.Ventas);
 
             // Segunda venta: referencia un producto inexistente.
-            var segundaVenta = new Venta();
+            var segundaVenta = new Venta(_usuarioId);
             segundaVenta.AgregarProducto(999999, 1, 3.00m);
 
             Assert.Throws<DbUpdateException>(

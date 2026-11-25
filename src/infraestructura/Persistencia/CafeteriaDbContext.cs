@@ -171,6 +171,13 @@ public class CafeteriaDbContext : DbContext
             entidad.Property(v => v.Estado)
                 .HasConversion<int>();
 
+            // Marca de persistencia para ventas anteriores.
+            // No modifica la entidad de dominio de Brayan.
+            entidad.Property<bool>("EsHistorica")
+                .HasColumnType("INTEGER")
+                .HasDefaultValue(false)
+                .IsRequired();
+
             entidad.Property(v => v.Modalidad)
                 .HasConversion<int>();
 
