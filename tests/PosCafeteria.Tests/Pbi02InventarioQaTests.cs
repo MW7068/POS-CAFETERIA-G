@@ -95,7 +95,7 @@ public class Pbi02InventarioQaTests : IDisposable
         Assert.Equal(15, productoIntacto.Stock);
     }
 
-    [Fact]
+        [Fact]
     public void PersistenciaEnArchivoSqlite_TrasCerrarYReabrirContexto_ConservaDatos()
     {
         string carpetaBaseCompartida = Path.Combine(Path.GetTempPath(), "CafeMamaOli_QA");
@@ -111,16 +111,20 @@ public class Pbi02InventarioQaTests : IDisposable
             {
                 ctx1.Database.Migrate();
 
+                var usuario = Usuario.Crear("cajero_qa", "ClaveQa123!", RolUsuario.Cajero);
+                ctx1.Set<Usuario>().Add(usuario);
+
                 var infusion = new Producto
                 {
                     Nombre = "Mate de Coca",
                     Precio = 3.50m,
-                    Stock = 25
+                    Stock = 25,
+                    Activo = true
                 };
                 ctx1.Productos.Add(infusion);
                 ctx1.SaveChanges();
 
-                var venta = new Venta();
+                var venta = new Venta(usuario.Id);
                 venta.AgregarProducto(infusion, 4);
 
                 ventaId = new RepositorioVentas(ctx1).Guardar(venta);
