@@ -63,24 +63,31 @@ public class Pbi02InventarioQaTests : IDisposable
     {
         // Entrega parcial: verifica que no queden ventas ni detalles ante un producto inexistente;
         // la reversion de descuento de stock queda pendiente hasta contar con el flujo real de confirmacion.
+        int usuarioId;
         int productoValidoId;
 
         using (var prep = CrearContextoMemoria())
         {
+            var usuario = Usuario.Crear("cajero_rollback_qa", "ClaveQa123!", RolUsuario.Cajero);
+            prep.Set<Usuario>().Add(usuario);
+
             var cafe = new Producto
             {
                 Nombre = "Cafe Pasado",
                 Precio = 6.00m,
-                Stock = 15
+                Stock = 15,
+                Activo = true
             };
             prep.Productos.Add(cafe);
             prep.SaveChanges();
+
+            usuarioId = usuario.Id;
             productoValidoId = cafe.Id;
         }
 
         using (var ctx = CrearContextoMemoria())
         {
-            var venta = new Venta();
+            var venta = new Venta(usuarioId);
             venta.AgregarProducto(productoValidoId, 2, 6.00m);
             venta.AgregarProducto(999999, 1, 4.00m);
 
@@ -95,7 +102,7 @@ public class Pbi02InventarioQaTests : IDisposable
         Assert.Equal(15, productoIntacto.Stock);
     }
 
-    [Fact]
+        [Fact]
     public void PersistenciaEnArchivoSqlite_TrasCerrarYReabrirContexto_ConservaDatos()
     {
         string carpetaBaseCompartida = Path.Combine(Path.GetTempPath(), "CafeMamaOli_QA");
@@ -111,16 +118,20 @@ public class Pbi02InventarioQaTests : IDisposable
             {
                 ctx1.Database.Migrate();
 
+                var usuario = Usuario.Crear("cajero_qa", "ClaveQa123!", RolUsuario.Cajero);
+                ctx1.Set<Usuario>().Add(usuario);
+
                 var infusion = new Producto
                 {
                     Nombre = "Mate de Coca",
                     Precio = 3.50m,
-                    Stock = 25
+                    Stock = 25,
+                    Activo = true
                 };
                 ctx1.Productos.Add(infusion);
                 ctx1.SaveChanges();
 
-                var venta = new Venta();
+                var venta = new Venta(usuario.Id);
                 venta.AgregarProducto(infusion, 4);
 
                 ventaId = new RepositorioVentas(ctx1).Guardar(venta);
@@ -155,3 +166,4 @@ public class Pbi02InventarioQaTests : IDisposable
         _conexionMemoria.Dispose();
     }
 }
+
