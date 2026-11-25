@@ -1,10 +1,12 @@
 ﻿name: Docker CI
 
+
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feature/pbi-03-dominio]
   push:
     branches: [main]
+
 
 jobs:
   pruebas-docker:
