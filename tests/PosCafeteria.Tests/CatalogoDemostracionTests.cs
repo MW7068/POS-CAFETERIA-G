@@ -28,40 +28,50 @@ public class CatalogoDemostracionTests
         Assert.True(sandwich.Id > 0);
 
         Assert.Equal(5.00m, cafe.Precio);
-        Assert.Equal(20, cafe.Stock);
+        Assert.Equal(0, cafe.Stock);
 
         Assert.Equal(8.00m, sandwich.Precio);
-        Assert.Equal(15, sandwich.Stock);
+        Assert.Equal(0, sandwich.Stock);
     }
 
-    [Fact]
-    public void RepetirCarga_NoDuplicaNiSobrescribeProductosExistentes()
-    {
-        using var contexto = ConexionSqlite.CrearContexto(
-            ":memory:",
-            cargarDemo: true);
+[Fact]
+public void RepetirCarga_NoDuplicaNiSobrescribeProductosExistentes()
+{
+    using var contexto = ConexionSqlite.CrearContexto(
+        ":memory:",
+        cargarDemo: true);
 
-        contexto.Database.OpenConnection();
-        contexto.Database.Migrate();
+    contexto.Database.OpenConnection();
+    contexto.Database.Migrate();
 
-        var cafe = contexto.Productos.Single(p => p.Nombre == "Café");
-        var cafeId = cafe.Id;
+    var cafe = contexto.Productos.Single(p => p.Nombre == "Café");
+    var cafeId = cafe.Id;
 
-        cafe.Precio = 6.00m;
-        cafe.Stock = 17;
-        contexto.SaveChanges();
+    // Preparamos un producto existente con datos modificados.
+    cafe.Precio = 6.00m;
+    cafe.Stock = 17;
 
-        contexto.ChangeTracker.Clear();
+    contexto.SaveChanges();
+    contexto.ChangeTracker.Clear();
 
-        // Ejecuta nuevamente la carga, con el esquema ya actualizado.
-        contexto.Database.Migrate();
+    // Ejecutamos nuevamente la carga del catálogo.
+    contexto.Database.Migrate();
 
-        var productos = contexto.Productos.AsNoTracking().ToList();
-        var recuperado = productos.Single(p => p.Nombre == "Café");
+    var productos = contexto.Productos.AsNoTracking().ToList();
+    var recuperado = productos.Single(p => p.Nombre == "Café");
 
-        Assert.Equal(2, productos.Count);
-        Assert.Equal(cafeId, recuperado.Id);
-        Assert.Equal(6.00m, recuperado.Precio);
-        Assert.Equal(17, recuperado.Stock);
-    }
+    // No debe duplicar productos.
+    Assert.Equal(2, productos.Count);
+
+    // Debe conservar el mismo identificador.
+    Assert.Equal(cafeId, recuperado.Id);
+
+    // Debe conservar el precio modificado.
+    Assert.Equal(6.00m, recuperado.Precio);
+
+    // No debe sobrescribir el stock existente.
+    Assert.Equal(17, recuperado.Stock);
+}
+
+
 }

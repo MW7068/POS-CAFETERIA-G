@@ -1,23 +1,161 @@
 erDiagram
-    Ventas ||--o{ DetallesVenta : "contiene - CASCADE"
-    Productos ||--o{ DetallesVenta : "referenciado por - RESTRICT"
+    direction TB
 
-    Productos {
-        INTEGER Id PK "Autoincremental"
-        TEXT Nombre
-        TEXT Precio "decimal en C#"
-        INTEGER Stock
+    Categoria {
+        int Id PK
+        varchar(100) Nombre
+        boolean Activa
     }
 
-    Ventas {
-        INTEGER Id PK "Autoincremental"
-        TEXT Fecha "DateTime en C#"
+    Producto {
+        int Id PK
+        varchar(150) Nombre
+        decimal Precio "18,2"
+        int Stock
+        int StockMinimo
+        int CategoriaId FK "NULL"
+        boolean Activo
     }
 
-    DetallesVenta {
-        INTEGER Id PK "Autoincremental"
-        INTEGER VentaId FK
-        INTEGER ProductoId FK
-        INTEGER Cantidad
-        TEXT PrecioUnitario "decimal - precio historico"
+    MovimientoStock {
+        int Id PK
+        int ProductoId FK
+        int UsuarioId FK
+        int VentaId FK "NULL"
+        enum Tipo "EntradaProducto o SalidaProducto"
+        int Cantidad "Mayor que cero"
+        varchar(500) Motivo
+        datetime(6) FechaUtc
     }
+
+    Usuario {
+        int Id PK
+        varchar(100) NombreUsuario UK
+        varchar(255) Password
+        enum Rol "Administrador o Cajero"
+        boolean Activo
+    }
+
+    negocio {
+        int Id PK
+        varchar(150) NombreNegocio
+        varchar(11) Ruc "NULL"
+        decimal TasaImpuesto "5,2"
+    }
+
+    Cliente {
+        int Id PK
+        varchar(150) Nombre
+        enum TipoDocumento "Ninguno, Dni o Ruc"
+        varchar(20) NumeroDocumento "UNIQUE junto con TipoDocumento"
+        varchar(25) Telefono "NULL"
+    }
+
+    DetalleVenta {
+        int Id PK
+        int VentaId FK
+        int ProductoId FK
+        varchar(150) NombreProducto
+        int Cantidad
+        decimal PrecioUnitario "18,2"
+        varchar(500) Observacion "NULL"
+    }
+
+    Venta {
+        int Id PK
+        varchar(64) IdentificadorOperacion UK "NULL"
+        datetime(6) Fecha
+        int UsuarioId FK
+        enum Estado "Borrador, Confirmada o Anulada"
+        enum Modalidad "Local o ParaLlevar"
+        int NumeroMesa "NULL"
+        int CajaId FK "NULL"
+        int ClienteId FK "NULL"
+        decimal Descuento "18,2"
+    }
+
+    Pago {
+        int Id PK
+        int VentaId FK, UK
+        int CajaId FK
+        int UsuarioId FK
+        enum Metodo "Efectivo, YapePlin, Tarjeta o SinCobroAutorizado"
+        decimal MontoConsumo "18,2"
+        decimal MontoPropina "18,2"
+        decimal MontoTotal "18,2"
+        decimal MontoRecibido "18,2"
+        boolean ConfirmacionManualDigital
+        varchar(100) ReferenciaOperacionDigital "NULL"
+        datetime(6) FechaPagoUtc
+    }
+
+    Comprobante {
+        int Idcomprobante PK
+        int VentaId FK, UK
+        varchar(10) Serie "UNIQUE junto con Numero"
+        int Numero
+        varchar(150) ClienteNombre
+        decimal Total "18,2"
+        datetime(6) FechaEmisionUtc
+    }
+
+    Caja {
+        int Id PK
+        int UsuarioId FK
+        datetime(6) FechaAperturaUtc
+        datetime(6) FechaCierreUtc "NULL"
+        decimal MontoInicial "18,2"
+        decimal MontoContado "18,2, NULL"
+        decimal TotalIngresosEfectivo "18,2, NULL"
+        decimal TotalEgresosEfectivo "18,2, NULL"
+        decimal TotalEsperado "18,2, NULL"
+        decimal Diferencia "18,2, NULL"
+        enum Estado "Abierta o Cerrada"
+        text Observacion "NULL"
+    }
+
+    CajaMovimiento {
+        int Id PK
+        int CajaId FK
+        int UsuarioId FK
+        int VentaId FK "NULL"
+        enum Tipo "Ingreso o Egreso"
+        varchar(150) Concepto
+        enum MetodoPago "Efectivo, YapePlin o Tarjeta"
+        decimal Monto "18,2"
+        varchar(100) Referencia "NULL"
+        datetime(6) FechaUtc
+        text Observacion "NULL"
+        enum Origen "Venta, Propina, IngresoManual, Gasto, Retiro o Reembolso"
+    }
+
+    Categoria |o..o{ Producto : clasifica
+
+    Usuario ||..o{ Caja : abre
+    Usuario ||..o{ Venta : registra
+    Usuario ||..o{ Pago : registra
+    Usuario ||..o{ MovimientoStock : registra
+    Usuario ||..o{ CajaMovimiento : registra
+
+    Producto ||..o{ DetalleVenta : aparece_en
+    Producto ||..o{ MovimientoStock : tiene
+
+    Cliente |o..o{ Venta : asociado_a
+
+    Caja |o..o{ Venta : agrupa
+    Caja ||..o{ Pago : registra
+    Caja ||..o{ CajaMovimiento : contiene
+
+    Venta ||..o{ DetalleVenta : contiene
+    Venta ||..o| Pago : tiene
+    Venta ||..o| Comprobante : genera
+    Venta |o..o{ MovimientoStock : origina
+    Venta |o..o{ CajaMovimiento : origina
+
+    %% Las claves primarias son AUTO_INCREMENT.
+    %% Los campos sin NULL son obligatorios.
+    %% Todas las fechas se almacenan en UTC.
+    %% negocio contiene la configuracion general y no tiene FK.
+    %% Solo puede existir una Caja abierta.
+    %% UNIQUE Cliente: TipoDocumento y NumeroDocumento.
+    %% UNIQUE Comprobante: Serie y Numero.
