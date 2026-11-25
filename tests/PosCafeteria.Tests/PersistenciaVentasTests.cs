@@ -13,6 +13,7 @@ public class PersistenciaVentasTests : IDisposable
 {
     private readonly SqliteConnection _conexion;
     private readonly DbContextOptions<CafeteriaDbContext> _opciones;
+    private readonly int _usuarioId;
 
     public PersistenciaVentasTests()
     {
@@ -27,6 +28,16 @@ public class PersistenciaVentasTests : IDisposable
 
         using var contexto = CrearContexto();
         contexto.Database.Migrate();
+
+        var usuario = Usuario.Crear(
+            "cajero_pruebas",
+            "ClaveSoloParaTests123!",
+            RolUsuario.Cajero);
+
+        contexto.Usuarios.Add(usuario);
+        contexto.SaveChanges();
+
+        _usuarioId = usuario.Id;
     }
 
     private CafeteriaDbContext CrearContexto()
@@ -64,7 +75,7 @@ public class PersistenciaVentasTests : IDisposable
             cafeId = cafe.Id;
             panId = pan.Id;
 
-            var venta = new Venta();
+            var venta = new Venta(_usuarioId);
             venta.AgregarProducto(cafe, 2);
             venta.AgregarProducto(pan, 3);
             fecha = venta.Fecha;
@@ -120,7 +131,7 @@ public class PersistenciaVentasTests : IDisposable
             contexto.SaveChanges();
             productoId = producto.Id;
 
-            var venta = new Venta();
+            var venta = new Venta(_usuarioId);
             venta.AgregarProducto(producto, 2);
 
             ventaId = new RepositorioVentas(contexto)
@@ -176,7 +187,7 @@ public class PersistenciaVentasTests : IDisposable
 
         using (var contexto = CrearContexto())
         {
-            var venta = new Venta();
+            var venta = new Venta(_usuarioId);
 
             venta.AgregarProducto(productoId, 2, 5.00m);
             venta.AgregarProducto(999999, 1, 3.00m);
@@ -227,7 +238,7 @@ public class PersistenciaVentasTests : IDisposable
             using var transaccion = contexto.Database.BeginTransaction();
 
             // Primera venta: se guarda correctamente.
-            var primeraVenta = new Venta();
+            var primeraVenta = new Venta(_usuarioId);
             primeraVenta.AgregarProducto(productoId, 2, 5.00m);
 
             var repositorio = new RepositorioVentas(contexto);
@@ -237,7 +248,7 @@ public class PersistenciaVentasTests : IDisposable
             Assert.Single(contexto.Ventas);
 
             // Segunda venta: referencia un producto inexistente.
-            var segundaVenta = new Venta();
+            var segundaVenta = new Venta(_usuarioId);
             segundaVenta.AgregarProducto(999999, 1, 3.00m);
 
             Assert.Throws<DbUpdateException>(
