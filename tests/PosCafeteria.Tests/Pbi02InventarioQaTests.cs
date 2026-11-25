@@ -63,24 +63,31 @@ public class Pbi02InventarioQaTests : IDisposable
     {
         // Entrega parcial: verifica que no queden ventas ni detalles ante un producto inexistente;
         // la reversion de descuento de stock queda pendiente hasta contar con el flujo real de confirmacion.
+        int usuarioId;
         int productoValidoId;
 
         using (var prep = CrearContextoMemoria())
         {
+            var usuario = Usuario.Crear("cajero_rollback_qa", "ClaveQa123!", RolUsuario.Cajero);
+            prep.Set<Usuario>().Add(usuario);
+
             var cafe = new Producto
             {
                 Nombre = "Cafe Pasado",
                 Precio = 6.00m,
-                Stock = 15
+                Stock = 15,
+                Activo = true
             };
             prep.Productos.Add(cafe);
             prep.SaveChanges();
+
+            usuarioId = usuario.Id;
             productoValidoId = cafe.Id;
         }
 
         using (var ctx = CrearContextoMemoria())
         {
-            var venta = new Venta();
+            var venta = new Venta(usuarioId);
             venta.AgregarProducto(productoValidoId, 2, 6.00m);
             venta.AgregarProducto(999999, 1, 4.00m);
 
@@ -159,3 +166,4 @@ public class Pbi02InventarioQaTests : IDisposable
         _conexionMemoria.Dispose();
     }
 }
+
